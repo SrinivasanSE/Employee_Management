@@ -14,7 +14,7 @@ const LayoutWrapper = (props) => {
                         <NavLink
                             activeClassName="activeHeader"
                             className="nav-link"
-                            to={"/"}
+                            to={"/home"}
                         >
                             Home
                         </NavLink>
