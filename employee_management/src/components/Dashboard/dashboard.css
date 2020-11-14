@@ -1,0 +1,14 @@
+.dashboard_content{
+    margin-top: 10%;
+}
+
+
+.edit_button{
+    color:#007bff;
+    cursor:pointer;
+}
+
+.delete_button,.delete_button:hover{
+    color:red;
+    cursor:pointer;
+}

@@ -1,0 +1,27 @@
+.content-container{
+    width: 100%;
+    height: 100vh;
+}
+
+.main-content{
+    height:100%;
+}
+
+.headerLink{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.activeHeader{
+    text-decoration: underline;
+    color: white !important;
+}
+
+.footer{
+    background-color: #007bff;
+    display:flex;
+    justify-content: center;
+    align-items: center;
+    height: 3em;
+}

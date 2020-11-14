@@ -1,26 +1,24 @@
 import React, { Component } from "react";
-import { Navbar, Nav } from "react-bootstrap";
+import LayoutWrapper from "../Navbar/Navbar";
 import "./home.css";
-
+import { Link } from "react-router-dom"
 
 class Home extends Component {
     render() {
         return (
-            <div>
-                <Navbar collapseOnSelect expand="lg" bg="primary" fixed="top" variant="dark">
-                    <Navbar.Brand href="/home">Manager</Navbar.Brand>
-                    <Navbar.Toggle aria-controls="responsive-navbar-nav" />
-                    <Navbar.Collapse id="responsive-navbar-nav">
-                        <Nav className="ml-auto">
-                            <Nav.Link href="/" className="mr-5">Home</Nav.Link>
-                            <Nav.Link href="/login">Login</Nav.Link>
-                        </Nav>
-                    </Navbar.Collapse>
-                </Navbar>
-                <div className="container main-content">
-                    Hello
+
+            <LayoutWrapper>
+                <div className="main-content_home">
+                    <div>
+                        <h1>Welcome User!</h1>
+                        <div className="text-center">
+                            <p>Login to Continue</p>
+                            <Link className="btn btn-outline-primary text-center" to="/login">Login</Link>
+                        </div>
+                    </div>
                 </div>
-            </div>
+            </LayoutWrapper>
+
         )
     }
 }
