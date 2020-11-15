@@ -4,7 +4,7 @@
 }
 
 .main-content{
-    height:100%;
+   width:100%;
 }
 
 .headerLink{
@@ -14,7 +14,6 @@
 }
 
 .activeHeader{
-    text-decoration: underline;
     color: white !important;
 }
 
@@ -23,5 +22,11 @@
     display:flex;
     justify-content: center;
     align-items: center;
-    height: 3em;
+    height: 4em;
+    background-color: #343a40;
+    color: white;
+}
+
+.logout_button{
+    cursor:pointer;
 }

@@ -4,9 +4,8 @@ body, html {
   }
 
 .main-content_home{
-    margin-top:4%;
     background-image: url("../../assets/images/background.jpg");
-    height: 100%;
+    height: 600px;
     background-position: center;
     background-repeat: no-repeat;
     background-size: cover;

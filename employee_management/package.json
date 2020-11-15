@@ -15,6 +15,7 @@
     "react-icons": "^3.11.0",
     "react-router-dom": "^5.2.0",
     "react-scripts": "4.0.0",
+    "sweetalert": "^2.1.2",
     "web-vitals": "^0.2.4"
   },
   "scripts": {
@@ -22,8 +23,9 @@
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
-    "start-flask-api": "cd api && cd venv\\Scripts && flask run",
-    "start-app": "concurrently \"npm run start-flask-api\" \"npm start\""
+    "start-flask-api": "cd api && flask run",
+    "start-app": "concurrently \"npm run start-flask-api\" \"npm start\"",
+    "init_db": "cd api && python db.py"
   },
   "eslintConfig": {
     "extends": [

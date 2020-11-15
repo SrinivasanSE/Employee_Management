@@ -1,18 +1,15 @@
-from flask import Flask, request,jsonify;
-from flask_mysqldb import MySQL
+from flask import Flask, request,jsonify
 from datetime import date
+from flask_mysqldb import MySQL
+from passlib.hash import sha256_crypt
 
-app = Flask(_name_)
-#Config
+app = Flask(__name__)
 app.config['MYSQL_HOST'] = 'localhost'
 app.config['MYSQL_USER'] = 'root'
-#Provide your MySQL password below.
-app.config['MYSQL_PASSWORD'] = ''
-app.config['MYSQL_DB'] = 'temp_db'
+app.config['MYSQL_PASSWORD'] = 'seenu@123'
+app.config['MYSQL_DB'] = 'manager'
 
 mysql = MySQL(app)
-
-
 
 @app.route("/add_employee", methods = ['POST'])
 def add_employee_to_db():
@@ -83,7 +80,7 @@ def search_employee():
 @app.route("/show_employee", methods = ['GET'])
 def show_employee():
     cur = mysql.connection.cursor()
-    val = cur.execute("SELECT * FROM emp")
+    val = cur.execute("SELECT * FROM PERSONS")
     emp_data = cur.fetchall()
     cur.close()
     return jsonify({
@@ -106,13 +103,19 @@ def delete_employee(id):
         }),200
 
 
-@app.route("/update_employee/id/<id>", methods = ['GET', 'POST'])
+@app.route("/update_employee/<id>", methods = ['GET', 'PUT'])
 def update_employee(id):
-    cur = mysql.connection.cursor()
-    val = cur.execute(f"SELECT * FROM emp WHERE id={id};")
-    emp_data = cur.fetchone()
-    cur.close()
-    if request.method == 'POST':
+    if request.method== 'GET':
+        cur = mysql.connection.cursor()
+        val = cur.execute(f"SELECT * FROM emp WHERE id={id};")
+        emp_data = cur.fetchone()
+        cur.close()
+        return jsonify({
+                "status":"success",
+                "data":emp_data,
+            }),200
+
+    elif request.method == 'PUT':
         data=request.get_json()
         emp_id = data['emp_id']
         name = data['name']
@@ -124,13 +127,42 @@ def update_employee(id):
         cur.execute(f"UPDATE emp SET emp_id=%s, name=%s, gender=%s, address=%s, dob=%s, mobile=%s  WHERE id={id};", (emp_id, name, gender, address, dob, mobile))
         mysql.connection.commit()
         cur.close()
-       return jsonify({
+        return jsonify({
             "status":"success",
             "data":"Employee details updated successfully",
         }),200
 
-    
+@app.route("/authenticate_user",methods=["POST"])
+def authenticate_user():
+    user_detail=request.get_json()
+    email=user_detail["email"]
+    passwordEntered=user_detail['password']
+    print(email,passwordEntered)
+    cur = mysql.connection.cursor()
+    cur.execute('SELECT * FROM Admin WHERE email = %s', (email,))
+    user = cur.fetchone()
+    cur.close()
+    if user:
+        passwordInDb=user[-1]
+        isUser = sha256_crypt.verify(passwordEntered,passwordInDb)
+        if(isUser):
+            return jsonify({
+                "status":"success",
+                "msg":"User is authenticated",
+                "data":user,
+            }),200
+        else:
+             return jsonify({
+                "status":"error",
+                "msg":"Wrong password",
+                "data":user,
+            }),200
+    return jsonify({
+                "status":"error",
+                "msg":"email doesn't exist",
+            }),200
 
+   
 
-if _name_ == '_main_':
+if __name__ == '__main__':
     app.run(debug=True)

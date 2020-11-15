@@ -1,0 +1,31 @@
+.login_container{
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    background-image: url("../../assets/images/background.jpg");
+    height: 600px;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
+}
+
+.login_content{
+    width:50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+}
+
+.login_form{
+    width:50%;
+}
+
+.login_text{
+    border-bottom: 2px solid green;
+    margin-top: 5%;
+}
+
+.label_color{
+    color:white;
+}

@@ -1,0 +1,39 @@
+.add_employee_container{
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    background-image: url("../../assets/images/background.jpg");
+    height: 100%;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
+}
+.form_container{
+    margin-top: 10%;
+    width: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column
+}
+.form_content_add{
+    width: 50%;
+    padding-bottom: 5%;
+}
+
+.radio-block{
+    display:flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.add_employee_text{
+    border-bottom: 2px solid green;
+    margin-bottom: 5%;
+}
+
+.label_color{
+    color:white;
+}

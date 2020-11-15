@@ -7,7 +7,7 @@ class Home extends Component {
     render() {
         return (
 
-            <LayoutWrapper>
+            <LayoutWrapper isLoggedIn={false}>
                 <div className="main-content_home">
                     <div>
                         <h1>Welcome User!</h1>
