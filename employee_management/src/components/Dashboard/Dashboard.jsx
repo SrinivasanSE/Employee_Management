@@ -7,6 +7,7 @@ import { HiUserAdd } from "react-icons/hi";
 import { Link } from "react-router-dom";
 import { Modal } from "react-bootstrap";
 import { isUserAuthenticated } from '../../helpers/auth';
+import swal from 'sweetalert';
 export default class Dashboard extends Component {
 
     constructor(props) {
@@ -29,11 +30,12 @@ export default class Dashboard extends Component {
             },
             showFilterModal: false,
             fields: [],
+            deleteId: '',
         }
     }
 
-    componentDidMount() {
-        fetch('/show_employee', {
+    getAllEmployees = () => {
+        fetch('/get_all_employees', {
             method: 'GET',
             headers: {
                 'Accept': 'application/json',
@@ -41,7 +43,14 @@ export default class Dashboard extends Component {
             }
         })
             .then(result => result.json())
-            .then(item => console.log(item))
+            .then(res => {
+                console.log(res.data)
+                this.setState({ allEmployees: res.data })
+            })
+    }
+
+    componentDidMount() {
+        this.getAllEmployees();
     }
 
     handleModal = () => {
@@ -53,7 +62,25 @@ export default class Dashboard extends Component {
     }
 
     handleDelete = () => {
-
+        this.handleModal();
+        const ajaxRequestHeaders = new Headers({
+            'Content-Type': 'application/json',
+            Accept: 'application/json',
+        });
+        let body = {
+            method: 'DELETE',
+            headers: ajaxRequestHeaders,
+        }
+        fetch(`/employee/${this.state.deleteId}`, body).then((res) => res.json()).then((res) => {
+            if (res.msg === "Employee deleted successfully") {
+                this.getAllEmployees()
+                swal("Success", res.msg, "success");
+            }
+            else {
+                swal("Error", res.msg, "error");
+            }
+        })
+        this.setState({ deleteId: '' })
     }
 
     handleFilterValues = (e) => {
@@ -76,20 +103,24 @@ export default class Dashboard extends Component {
 
     }
     render() {
+        for (let i = 0; i < this.state.allEmployees.length; i++) {
+            console.log(this.state.allEmployees[i])
+        }
         return (
             <LayoutWrapper isLoggedIn={isUserAuthenticated()}>
                 <div className="container dashboard_content" >
                     <div className="d-flex justify-content-between mb-4">
                         <Link to="/employee/add" className="btn btn-outline-primary">Add employee <HiUserAdd /></Link>
+                        <div className="total_employees.txt">Total Employees: <span className="badge badge-pill badge-primary">{this.state.allEmployees.length}</span></div>
                         <button className="btn btn-primary" onClick={this.handleFilterModal}>Filter</button>
                     </div>
                     <table className="table table-hover table-bordered">
                         <thead>
                             <tr>
-                                <th scope="col">#</th>
-                                <th scope="col">Id</th>
+                                <th scope="col">Employee Id</th>
                                 <th scope="col">Name</th>
-                                <th scope="col">Address</th>
+                                <th scope="col">Email</th>
+                                <th scope="col">Work location</th>
                                 <th scope="col">DOB</th>
                                 <th scope="col">Mobile No</th>
                                 <th scope="col">Action</th>
@@ -97,24 +128,17 @@ export default class Dashboard extends Component {
                             </tr>
                         </thead>
                         <tbody>
-                            <tr>
-                                <th scope="row">1</th>
-                                <td>Mark</td>
-                                <td>Otto</td>
-                                <td>@mdo</td>
-                                <td>19/07/2020</td>
-                                <td>7092104848</td>
-                                <td><span className="mr-5"><FaEdit /></span><MdDelete /></td>
-                            </tr>
-                            <tr>
-                                <th scope="row">2</th>
-                                <td>Jacob</td>
-                                <td>Thornton</td>
-                                <td>@fat</td>
-                                <td>19/07/2020</td>
-                                <td>7092104848</td>
-                                <td><Link className="edit_button mr-5" to="/employee/edit"><FaEdit /></Link><span onClick={() => this.handleModal()} className="delete_button" to="/employee/delete"><MdDelete /></span></td>
-                            </tr>
+                            {this.state.allEmployees.map((emp, id) => (
+                                <tr key={emp.emp_id}>
+                                    <td>{emp.emp_id}</td>
+                                    <td>{emp.name}</td>
+                                    <td>{emp.email}</td>
+                                    <td>{emp.address.split('|')[2]}</td>
+                                    <td>{emp.dob}</td>
+                                    <td>{emp.mobile}</td>
+                                    <td><Link className="edit_button mr-5" to={`/employee/edit/${emp.emp_id}`}><FaEdit /></Link><span onClick={() => { this.setState({ deleteId: emp.emp_id }); this.handleModal() }} className="delete_button" to="/employee/delete"><MdDelete /></span></td>
+                                </tr>
+                            ))}
                         </tbody>
                     </table>
                 </div>
