@@ -5,9 +5,10 @@ from passlib.hash import sha256_crypt
 import random
 
 app = Flask(__name__)
+app.config.from_pyfile('settings.py')
 app.config['MYSQL_HOST'] = 'localhost'
 app.config['MYSQL_USER'] = 'root'
-app.config['MYSQL_PASSWORD'] = 'seenu@123'  # your password
+app.config['MYSQL_PASSWORD'] = app.config.get("MYSQL_PASSWORD")  # your password
 app.config['MYSQL_DB'] = 'employee_db'
 
 mysql = MySQL(app)
