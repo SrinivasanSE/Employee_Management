@@ -32,8 +32,6 @@ function PublicRoute({ component: Component, isLoggedIn, ...rest }) {
   )
 }
 function App() {
-  console.log(isUserAuthenticated())
-  console.log("here")
   return (
     <BrowserRouter>
       <Switch>

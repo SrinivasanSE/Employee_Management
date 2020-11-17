@@ -9,7 +9,6 @@ const LayoutWrapper = (props) => {
         localStorage.clear();
         window.location.href = "/home"
     }
-    console.log(props.isLoggedIn)
     return (
         <div className="content-container">
             <Navbar collapseOnSelect expand="lg" bg="dark" fixed="top" variant="dark">

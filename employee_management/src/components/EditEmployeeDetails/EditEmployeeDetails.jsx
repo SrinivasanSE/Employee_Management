@@ -3,6 +3,7 @@ import LayoutWrapper from "../Navbar/Navbar";
 import { isUserAuthenticated } from "../../helpers/auth";
 import "../AddEmployee/addEmployee.css";
 import swal from 'sweetalert';
+import moment from "moment";
 
 function validateEmail(email) {
     const re = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
@@ -28,53 +29,12 @@ export default class AddEmployee extends Component {
             mobileNo: '',
             email: '',
             errors: {},
-            apiData: {}
         }
     }
 
-    setData = (data) => {
-        let name = data.name.split(" ")
-        let address = data.address.split("|")
-        this.setState({
-            firstName: name[0],
-            lastName: name[1] ? name[1] : '',
-            gender: data.gender,
-            dob: data.dob,
-            addressLine1: address[0],
-            addressLine2: address[1],
-            city: address[2],
-            state: address[3],
-            pinCode: address[4],
-            country: address[5],
-            mobileNo: data.mobile,
-            email: data.email,
-        })
-    }
-
     componentDidMount() {
-        let id = this.props.match.params.id;//8442174 
-        this.setState({
-            id
-        })
-        fetch(`/employee/${id}`, {
-            method: 'GET',
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json'
-            }
-        })
-            .then(result => result.json())
-            .then(res => {
-                if (res.status === "success") {
-                    let data = res.data
-                    console.log(data)
-                    this.setState({ apiData: data });
-                    this.setData(data);
 
-                }
-            })
     }
-
 
     validateValues = () => {
         let errors = this.state.errors;
@@ -83,9 +43,19 @@ export default class AddEmployee extends Component {
             flag = 0;
             errors.firstName = "FirstName is required"
         }
+        if (this.state.firstName && !(/^[a-zA-Z ]+$/.test(this.state.firstName))) {
+            flag = 0;
+            errors.firstName = "Enter a valid FirstName"
+
+        }
         if (!this.state.lastName) {
             flag = 0;
             errors.lastName = "LastName is required"
+        }
+        if (this.state.lastName && !(/^[a-zA-Z ]+$/.test(this.state.lastName))) {
+            flag = 0;
+            errors.lastName = "Enter a valid LastName"
+
         }
         if (!this.state.email) {
             flag = 0;
@@ -102,21 +72,27 @@ export default class AddEmployee extends Component {
             flag = 0;
             errors.dob = "Date of birth is required"
         }
-        if (this.state.dob) {
-            let date = this.state.dob.split("/");
-            if (date.length !== 3) {
-                errors.dob = "Enter valid date"
-            }
-            let day = parseInt(date[0]);
-            let month = parseInt(date[1]);
-            let year = parseInt(date[2]);
-            if (!(day >= 1 && day <= 31) || !(month >= 1 && month <= 12) || !(year >= 1920 && year < new Date().getFullYear())) {
-                errors.dob = "Enter valid date"
-            }
-        }
+        // if (this.state.dob) {
+        //     let date = this.state.dob.split("/");
+        //     if (date.length !== 3) {
+        //         flag = 0;
+        //         errors.dob = "Enter valid date"
+        //     }
+        //     let day = parseInt(date[0]);
+        //     let month = parseInt(date[1]);
+        //     let year = parseInt(date[2]);
+        //     if (!(day >= 1 && day <= 31) || !(month >= 1 && month <= 12) || !(year >= 1920 && year < new Date().getFullYear())) {
+        //         errors.dob = "Enter valid date"
+        //         flag = 0;
+        //     }
+        // }
         if (!this.state.addressLine1) {
             flag = 0;
             errors.addressLine1 = "Address is required"
+        }
+        if (!this.state.addressLine2) {
+            flag = 0;
+            errors.addressLine2 = "Area is required"
         }
         if (!this.state.city) {
             flag = 0;
@@ -138,6 +114,13 @@ export default class AddEmployee extends Component {
             flag = 0;
             errors.mobileNo = "Mobile No is required"
         }
+        if (this.state.mobileNo) {
+            let isnum = /^\d+$/.test(this.state.mobileNo);
+            if (!isnum) {
+                flag = 0
+                errors.mobileNo = "Enter a valid mobile number"
+            }
+        }
         this.setState({ errors: { ...errors } });
         return flag;
 
@@ -157,21 +140,21 @@ export default class AddEmployee extends Component {
     handleSubmit = (e) => {
         e.preventDefault()
         const isValid = this.validateValues();
+        console.log(isValid)
         if (isValid === 0) {
             return
         }
-
+        console.log(moment(this.state.dob, "YYYY-MM-DD").format("DD/MM/YYYY"),)
         let address = this.state.addressLine1 + '|' + this.state.addressLine2 + '|' + this.state.city + '|' + this.state.state + '|' + this.state.pinCode + '|' + this.state.country
-
         const data = {
-            name: this.state.firstName + ' ' + this.state.lastName,
+            name: this.state.firstName + " " + this.state.lastName,
             gender: this.state.gender,
             address: address,
-            dob: this.state.dob,
+            dob: moment(this.state.dob, "YYYY-MM-DD").format("DD/MM/YYYY"),
             mobile: this.state.mobileNo,
             email: this.state.email,
+
         }
-        console.log(this.state)
         const ajaxRequestHeaders = new Headers({
             'Content-Type': 'application/json',
             Accept: 'application/json',
@@ -181,7 +164,6 @@ export default class AddEmployee extends Component {
             headers: ajaxRequestHeaders,
             body: JSON.stringify(data)
         }
-        console.log(this.state.id)
         fetch(`/employee/${this.state.id}`, body).then((res) => res.json()).then((res) => {
             if (res.msg === "Employee details updated successfully") {
                 swal("Success", res.msg, "success").then(() => this.props.history.push("/dashboard"));
@@ -256,7 +238,7 @@ export default class AddEmployee extends Component {
                             </div>
                             <div className="form-group">
                                 <label className="label_color">Date of birth(dd/mm/yyyy)</label>
-                                <input type="text" value={this.state.dob} name="dob" className="form-control" placeholder="Example: 20/04/2020" onChange={this.handleInput} />
+                                <input type="date" value={this.state.dob} min={`${new Date().getFullYear() - 60}-01-01`} max={`${new Date().getFullYear() - 20}-01-01`} name="dob" className="form-control" placeholder="Example: 20/04/2020" onChange={this.handleInput} />
                                 {this.state.errors.dob && (<span className="text-danger">{this.state.errors.dob}</span>)}
                             </div>
                             <div className="address_field">
@@ -266,6 +248,7 @@ export default class AddEmployee extends Component {
                                     {this.state.errors.addressLine1 && (<div className="text-danger">{this.state.errors.addressLine1}</div>)}
                                     <label className="label_color">Address Line 2</label>
                                     <input type="text" name="addressLine2" className="form-control" value={this.state.addressLine2} onChange={this.handleInput} />
+                                    {this.state.errors.addressLine2 && (<div className="text-danger">{this.state.errors.addressLine2}</div>)}
                                     <label className="label_color">City</label>
                                     <input type="text" name="city" className="form-control" value={this.state.city} onChange={this.handleInput} />
                                     {this.state.errors.city && (<div className="text-danger">{this.state.errors.city}</div>)}
@@ -282,7 +265,7 @@ export default class AddEmployee extends Component {
                             </div>
                             <div className="form-group">
                                 <label className="label_color">Mobile No:</label>
-                                <input type="tel" name="mobileNo" className="form-control" value={this.state.mobileNo} onChange={this.handleInput} />
+                                <input type="tel" name="mobileNo" className="form-control" value={this.state.mobileNumber} placeholder="Enter number only" onChange={this.handleInput} />
                                 {this.state.errors.mobileNo && (<span className="text-danger">{this.state.errors.mobileNo}</span>)}
                             </div>
                             <div className="text-center">
@@ -295,3 +278,4 @@ export default class AddEmployee extends Component {
         )
     }
 }
+

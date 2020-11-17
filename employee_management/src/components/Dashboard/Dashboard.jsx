@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import LayoutWrapper from "../Navbar/Navbar";
 import "./dashboard.css"
 import { FaEdit } from "react-icons/fa";
-import { MdDelete } from "react-icons/md";
+import { MdDelete, MdClear } from "react-icons/md";
 import { HiUserAdd } from "react-icons/hi";
 import { Link } from "react-router-dom";
 import { Modal } from "react-bootstrap";
@@ -31,6 +31,13 @@ export default class Dashboard extends Component {
             showFilterModal: false,
             fields: [],
             deleteId: '',
+            filterErrors: {
+                id: '',
+                name: '',
+                location: '',
+                age: '',
+
+            }
         }
     }
 
@@ -58,7 +65,9 @@ export default class Dashboard extends Component {
     }
 
     handleFilterModal = () => {
-        this.setState({ showFilterModal: !this.state.showFilterModal })
+        let error = this.state.filterErrors
+        error["common"] = ""
+        this.setState({ showFilterModal: !this.state.showFilterModal, filterErrors: { ...error } })
     }
 
     handleDelete = () => {
@@ -85,62 +94,135 @@ export default class Dashboard extends Component {
 
     handleFilterValues = (e) => {
         let filterValues = this.state.filterValues;
+        let errors = this.state.filterErrors;
+        if (e.target.value) {
+            errors[e.target.name] = ""
+        }
+        errors["common"] = ""
         filterValues[e.target.name] = e.target.value;
         this.setState({
-            filterValues: { ...filterValues }
+            filterValues: { ...filterValues },
+            filterErrors: { ...errors }
         })
     }
 
 
     handleCheckbox = (e) => {
         let filter = this.state.filter;
+        let filterValues = this.state.filterValues
+        if (e.target.name === "id") {
+            filterValues["name"] = ""
+            filter["name"] = false;
+            filterValues["location"] = ""
+            filter["location"] = false;
+            filterValues["age"] = ""
+            filter["age"] = false;
+        }
         filter[e.target.name] = e.target.checked;
-        let filterValues = this.state.filterValues;
         if (!e.target.checked) {
             filterValues[e.target.name] = "";
         }
         this.setState({ filter: { ...filter }, filterValues: { ...filterValues } })
 
     }
-    render() {
-        for (let i = 0; i < this.state.allEmployees.length; i++) {
-            console.log(this.state.allEmployees[i])
+
+    validateFilterValues = () => {
+        console.log(this.state.filterValues)
+        let error = this.state.filterErrors;
+        let flag = true;
+        if (this.state.filter.id === true && !this.state.filterValues.id) {
+            flag = false
+            error["id"] = "Enter employee id or remove filter"
         }
+        if (this.state.filter.name === true && !this.state.filterValues.name) {
+            flag = false
+            error["name"] = "Enter employee name or remove filter"
+        }
+        if (this.state.filter.location === true && !this.state.filterValues.location) {
+            flag = false
+            error["location"] = "Enter employee location or remove filter"
+        }
+        if (this.state.filter.age === true && !this.state.filterValues.age) {
+            flag = false
+            error["age"] = "Enter employee age or remove filter"
+        }
+        if (this.state.filter.age === false && this.state.filter.id === false && this.state.filter.name === false && this.state.filter.location === false) {
+            flag = false
+            error["common"] = "Add some filters to filter"
+        }
+        this.setState({ filterErrors: { ...error } })
+        return flag
+
+    }
+
+    filterEmployees = () => {
+        let isValid = this.validateFilterValues();
+        if (isValid) {
+            let data = { ...this.state.filterValues, status: this.state.filter }
+            this.handleFilterModal();
+            console.log(this.state.filterValues)
+            fetch('/filter_employees', {
+                method: 'POST',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            })
+                .then(result => result.json())
+                .then(res => {
+                    console.log(res)
+                    this.setState({ allEmployees: res.data || [] })
+                })
+        }
+    }
+
+    handleRemoveFilters = () => {
+        this.setState({ filterValues: {}, filter: {} })
+        this.getAllEmployees();
+    }
+    render() {
+        const isFilter = this.state.filterValues.id || this.state.filterValues.name || this.state.filterValues.location || this.state.filterValues.age
         return (
             <LayoutWrapper isLoggedIn={isUserAuthenticated()}>
                 <div className="container dashboard_content" >
                     <div className="d-flex justify-content-between mb-4">
                         <Link to="/employee/add" className="btn btn-outline-primary">Add employee <HiUserAdd /></Link>
                         <div className="total_employees.txt">Total Employees: <span className="badge badge-pill badge-primary">{this.state.allEmployees.length}</span></div>
-                        <button className="btn btn-primary" onClick={this.handleFilterModal}>Filter</button>
+                        <div><button className="btn btn-primary" onClick={this.handleFilterModal}>Filter </button>{isFilter && (<span><MdClear onClick={this.handleRemoveFilters} title="remove filters" /></span>)}</div>
                     </div>
-                    <table className="table table-hover table-bordered">
-                        <thead>
-                            <tr>
-                                <th scope="col">Employee Id</th>
-                                <th scope="col">Name</th>
-                                <th scope="col">Email</th>
-                                <th scope="col">Work location</th>
-                                <th scope="col">DOB</th>
-                                <th scope="col">Mobile No</th>
-                                <th scope="col">Action</th>
+                    {this.state.allEmployees.length !== 0 ? (
+                        <table className="table table-hover table-bordered">
+                            <thead>
+                                <tr>
+                                    <th scope="col">Employee Id</th>
+                                    <th scope="col">Name</th>
+                                    <th scope="col">Email</th>
+                                    <th scope="col">Work location</th>
+                                    <th scope="col">DOB</th>
+                                    <th scope="col">Mobile No</th>
+                                    <th scope="col">Action</th>
 
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {this.state.allEmployees.map((emp, id) => (
-                                <tr key={emp.emp_id}>
-                                    <td>{emp.emp_id}</td>
-                                    <td>{emp.name}</td>
-                                    <td>{emp.email}</td>
-                                    <td>{emp.address.split('|')[2]}</td>
-                                    <td>{emp.dob}</td>
-                                    <td>{emp.mobile}</td>
-                                    <td><Link className="edit_button mr-5" to={`/employee/edit/${emp.emp_id}`}><FaEdit /></Link><span onClick={() => { this.setState({ deleteId: emp.emp_id }); this.handleModal() }} className="delete_button" to="/employee/delete"><MdDelete /></span></td>
                                 </tr>
-                            ))}
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody>
+                                {this.state.allEmployees.map((emp, id) => (
+                                    <tr key={emp.emp_id}>
+                                        <td>{emp.emp_id}</td>
+                                        <td>{emp.name}</td>
+                                        <td>{emp.email}</td>
+                                        <td>{emp.address.split('|')[2]}</td>
+                                        <td>{emp.dob}</td>
+                                        <td>{emp.mobile}</td>
+                                        <td><Link className="edit_button mr-5" to={`/employee/edit/${emp.emp_id}`}><FaEdit /></Link><span onClick={() => { this.setState({ deleteId: emp.emp_id }); this.handleModal() }} className="delete_button" to="/employee/delete"><MdDelete /></span></td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    ) : (
+                            <div className="d-flex justify-content-center align-items-center">No employees found!</div>
+                        )}
+
                 </div>
                 <Modal show={this.state.show} onHide={this.handleModal}>
                     <Modal.Header closeButton>
@@ -166,35 +248,41 @@ export default class Dashboard extends Component {
                                 </label>
                                 {this.state.filter.id && (
                                     <input type="text" name="id" value={this.state.filterValues.id} className="form-control" onChange={this.handleFilterValues} placeholder="Enter id..." />)}
+                                <span className="text-danger">{this.state.filterErrors.id}</span>
                             </div>
                             <div>
                                 <label>
-                                    <input type="checkbox" name="name" checked={this.state.filter.name} onChange={this.handleCheckbox} />
+                                    <input type="checkbox" name="name" checked={this.state.filter.name} disabled={this.state.filter.id} onChange={this.handleCheckbox} />
                                     <span className="ml-2">Name</span>
                                 </label>
                                 {this.state.filter.name && (
-                                    <input type="text" name="name" value={this.state.filterValues.name} className="form-control" onChange={this.handleFilterValues} placeholder="Enter name..." />)}
+                                    <input type="text" name="name" value={this.state.filterValues.name} disabled={this.state.filter.id} className="form-control" onChange={this.handleFilterValues} placeholder="Enter name..." />)}
+                                <span className="text-danger">{this.state.filterErrors.name}</span>
                             </div>
                             <div>
                                 <label>
-                                    <input type="checkbox" name="location" checked={this.state.filter.location} onChange={this.handleCheckbox} />
+                                    <input type="checkbox" name="location" checked={this.state.filter.location} disabled={this.state.filter.id} onChange={this.handleCheckbox} />
                                     <span className="ml-2">Location</span>
                                 </label>
                                 {this.state.filter.location && (
-                                    <input type="text" name="location" value={this.state.filterValues.location} className="form-control" onChange={this.handleFilterValues} placeholder="Enter city,state..." />)}
+                                    <input type="text" name="location" value={this.state.filterValues.location} className="form-control" disabled={this.state.filter.id} onChange={this.handleFilterValues} placeholder="Enter city,state..." />)}
+                                <span className="text-danger">{this.state.filterErrors.location}</span>
                             </div>
                             <div>
                                 <label>
-                                    <input type="checkbox" name="age" checked={this.state.filter.age} onChange={this.handleCheckbox} />
+                                    <input type="checkbox" name="age" checked={this.state.filter.age} disabled={this.state.filter.id} onChange={this.handleCheckbox} />
                                     <span className="ml-2">Age</span>
                                 </label>
                                 {this.state.filter.age && (
-                                    <input type="Number" name="age" min="1" value={this.state.filterValues.age} className="form-control" onChange={this.handleFilterValues} placeholder="Enter age in number..." />)}
+                                    <input type="Number" name="age" min="1" value={this.state.filterValues.age} disabled={this.state.filter.id} className="form-control" onChange={this.handleFilterValues} placeholder="Enter age in number..." />)}
+                                <span className="text-danger">{this.state.filterErrors.age}</span>
                             </div>
+                            <div className="text-danger">{this.state.filterErrors.common}</div>
+                            <span className="alert-primary">*If you like to filter by employee id, others filters can't be applied!</span>
                         </div>
                     </Modal.Body>
                     <Modal.Footer>
-                        <button className="btn btn-primary" onClick={this.handleDelete}>Filter</button>
+                        <button className="btn btn-primary" onClick={() => this.filterEmployees()}>Filter</button>
                         <button className="btn btn-outline-secondary" onClick={this.handleFilterModal}>Cancel</button>
                     </Modal.Footer>
                 </Modal>
