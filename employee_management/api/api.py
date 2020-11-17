@@ -74,7 +74,7 @@ def add_employee_to_db():
                 cur.close()
             return jsonify({
                 "status": "Employee successfully added",
-                "data": employee
+                "data": {"emp_id": emp_id}
             }), 200
         except mysql.connection.DataError as err:
             return jsonify({
@@ -88,50 +88,122 @@ def add_employee_to_db():
             }), 200
 
 
+def calculate_age(dob):
+    age = 0
+    day = int(dob[0:2])
+    month = int(dob[3:5])
+    year = int(dob[6:10])
+    today = date.today()
+    if today.year > year:
+        if today.month > month:
+            age = today.year - year
+        elif today.month == month:
+            if today.day > day:
+                age = today.year - year
+            else:
+                age = today.year - year - 1
+        else:
+            age = today.year - year - 1
+    return age
+
+
 @app.route("/search_employee", methods=['POST'])
 def search_employee():
     if request.method == "POST":
-        data = request.get_json()
-        search_by = data["search_by"]
-        search_item = data["search_item"]
-        cur = mysql.connection.cursor()
-        val = cur.execute("SELECT * FROM emp")
-        emp_data = cur.fetchall()
-        cur.close()
-        lst = []
-        if search_by.lower() == "Name".lower():
-            for emp in emp_data:
-                if emp[2][0].lower() == search_item.lower():
-                    lst.append(emp)
-        elif search_by.lower() == "Employee Id".lower():
-            for emp in emp_data:
-                if emp[1] == search_item:
-                    lst.append(emp)
-                    break
-        elif search_by.lower() == "Age".lower():
-            for emp in emp_data:
-                age = 0
-                day = int(emp[5][0:2])
-                month = int(emp[5][3:5])
-                year = int(emp[5][6:])
-                today = date.today()
-                if today.year > year:
-                    if today.month > month:
-                        age = today.year - year
-                    elif today.month == month:
-                        if today.day > day:
-                            age = today.year - year
-                        else:
-                            age = today.year - year - 1
-                    else:
-                        age = today.year - year - 1
-                    print(age)
-                if age == int(search_item):
-                    lst.append(emp)
-        return jsonify({
-            "status": "success",
-            "data": lst,
-        }), 200
+        try:
+            data = request.get_json()
+            emp_id = data["emp_id"]
+            name = data["name"]
+            age = int(data["age"])
+            location = data["location"]
+            cur = mysql.connection.cursor()
+            val = cur.execute("SELECT * FROM employee_tab")
+            emp_data = cur.fetchall()
+            lst = []
+            emp = ()
+
+            binary_list = []
+            if name == "":
+                binary_list.append(0)
+            else:
+                binary_list.append(1)
+            if age == "":
+                binary_list.append(0)
+            else:
+                binary_list.append(1)
+            if location == "":
+                binary_list.append(0)
+            else:
+                binary_list.append(1)
+            binary = int(str(str(binary_list[0]) + str(binary_list[1]) + str(binary_list[2])), 2)
+
+            if emp_id != "":
+                cnt = cur.execute(f"SELECT * FROM employee_tab WHERE emp_id={emp_id};")
+                emp = cur.fetchone()
+            elif emp_id == "" and binary == 0:
+                return jsonify({
+                    "status": "error",
+                    "msg": "All fields could not be empty."
+                }), 200
+            elif binary == 1:
+                # location
+                cnt = cur.execute(f"SELECT * FROM employee_tab WHERE address like '%{location}%';")
+                emp = cur.fetchall()
+            elif binary == 2:
+                # age
+                for i in emp_data:
+                    if calculate_age(i[4]) == age:
+                        lst.append(i)
+                emp = tuple(lst)
+            elif binary == 4:
+                # name
+                cnt = cur.execute(f"SELECT * FROM employee_tab WHERE name like '{name}%';")
+                emp = cur.fetchall()
+
+            elif binary == 3:
+                # location, age
+                cnt = cur.execute(f"SELECT * FROM employee_tab WHERE address like '%{location}%';")
+                emp = cur.fetchall()
+                for i in emp:
+                    if calculate_age(i[4]) == age:
+                        lst.append(i)
+                emp = tuple(lst)
+            elif binary == 5:
+                # name, location
+                cnt = cur.execute(f"SELECT * FROM employee_tab WHERE name like '{name}%' and address like '%{location}%';")
+                emp = cur.fetchall()
+            elif binary == 6:
+                # name, age
+                cnt = cur.execute(f"SELECT * FROM employee_tab WHERE name like '{name}%';")
+                emp = cur.fetchall()
+                for i in emp:
+                    if calculate_age(i[4]) == age:
+                        lst.append(i)
+                emp = tuple(lst)
+            elif binary == 7:
+                # ame, age , location
+                cnt = cur.execute(f"SELECT * FROM employee_tab WHERE name like '{name}%' and address like '%{location}%';")
+                emp = cur.fetchall()
+                for i in emp:
+                    if calculate_age(i[4]) == age:
+                        lst.append(i)
+                emp = tuple(lst)
+            cur.close()
+            if emp == ():
+                return jsonify({
+                    "status": "success",
+                    "msg": "No data found.",
+                }), 200
+            else:
+                return jsonify({
+                    "status": "success",
+                    "data": emp,
+                }), 200
+        except ValueError:
+            return jsonify({
+                "status": "error",
+                "msg": "Invalid age entered",
+            }), 200
 
 
 @app.route("/get_all_employees", methods=['GET'])
