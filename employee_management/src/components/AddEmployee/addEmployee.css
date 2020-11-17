@@ -16,7 +16,8 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    flex-direction: column
+    flex-direction: column;
+    background-color: grey;
 }
 .form_content_add{
     width: 50%;

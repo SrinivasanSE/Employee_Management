@@ -103,6 +103,9 @@ export default class AddEmployee extends Component {
             flag = 0;
             errors.mobileNo = "Mobile No is required"
         }
+        if (this.state.mobileNo){
+
+        }
         this.setState({ errors: { ...errors } });
         return flag;
 
