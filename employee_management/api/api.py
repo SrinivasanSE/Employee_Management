@@ -74,9 +74,9 @@ def add_employee_to_db():
                 mysql.connection.commit()
                 cur.close()
             return jsonify({
-                "msg": "Employee successfully added",
-                "data": {"emp_id": emp_id},
-                "status":"success"
+                "status": "success",
+                "msg": "Employee added successfully.",
+                "data": {"emp_id": emp_id}
             }), 200
         except mysql.connection.DataError as err:
             return jsonify({
