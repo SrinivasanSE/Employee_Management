@@ -41,7 +41,7 @@ function App() {
         <PublicRoute path="/login" isLoggedIn={isUserAuthenticated()} component={LoginPage} />
         <PrivateRoute path="/dashboard" isLoggedIn={isUserAuthenticated()} component={Dashboard} />
         <PrivateRoute path="/employee/add" isLoggedIn={isUserAuthenticated()} component={AddEmployee} />
-        <PrivateRoute path="/employee/edit" isLoggedIn={isUserAuthenticated()} component={EditEmployee} />
+        <PrivateRoute path="/employee/edit/:id" isLoggedIn={isUserAuthenticated()} component={EditEmployee} />
         <Route render={() => (<Redirect to="/dashboard" />)} />
       </Switch>
     </BrowserRouter>

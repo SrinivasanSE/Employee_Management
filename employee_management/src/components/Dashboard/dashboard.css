@@ -13,3 +13,9 @@
     color:red;
     cursor:pointer;
 }
+
+.total_employees_txt{
+    display: flex;
+    justify-content:center;
+    align-items: center;
+}

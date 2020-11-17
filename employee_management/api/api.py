@@ -2,36 +2,90 @@ from flask import Flask, request,jsonify
 from datetime import date
 from flask_mysqldb import MySQL
 from passlib.hash import sha256_crypt
+import random
 
 app = Flask(__name__)
 app.config['MYSQL_HOST'] = 'localhost'
 app.config['MYSQL_USER'] = 'root'
-app.config['MYSQL_PASSWORD'] = 'seenu@123'
-app.config['MYSQL_DB'] = 'manager'
+app.config['MYSQL_PASSWORD'] = 'seenu@123' # your password
+app.config['MYSQL_DB'] = 'employee_db'
 
 mysql = MySQL(app)
 
-@app.route("/add_employee", methods = ['POST'])
+def generate_emp_id():
+    random_id = random.randint(1000001, 9999999)
+    cur = mysql.connection.cursor()
+    val = cur.execute(f"SELECT * FROM employee_tab WHERE emp_id={random_id}")
+    cur.close()
+    if val > 0:
+        generate_emp_id()
+    elif val == 0:
+        return random_id
+
+
+@app.route("/add_employee", methods=['POST'])
 def add_employee_to_db():
     if request.method == 'POST':
-        employee=request.get_json()
-        emp_id = employee['emp_id']
-        name = employee['name']
-        gender = employee['gender']
-        address = employee['address']
-        dob = employee['dob']
-        mobile = employee['mobile']
-        cur = mysql.connection.cursor()
-        cur.execute("INSERT INTO emp(emp_id, name, gender, address, dob, mobile) values(%s, %s, %s, %s, %s, %s);", (emp_id, name, gender, address, dob, mobile))
-        mysql.connection.commit()
-        cur.close()
-        return jsonify({
-            "status":"Employee successfully added",
-            "data":employee
-        }),200
+        try:
+            employee = request.get_json()
+            emp_id = generate_emp_id()
+            name = employee['name']
+            gender = employee['gender']
+            address = employee['address']
+            dob = employee['dob']
+            mobile = employee['mobile']
+            email = employee['email']
+            role = 'Employee'
+            if name == "":
+                return jsonify({
+                    "status": "error",
+                    "msg": "Name field could not be empty."
+                }), 200
+            elif address == "":
+                return jsonify({
+                    "status": "error",
+                    "msg": "Address field could not be empty."
+                }), 200
+            elif dob == "":
+                return jsonify({
+                    "status": "error",
+                    "msg": "DOB field could not be empty."
+                }), 200
+            elif mobile == "":
+                return jsonify({
+                    "status": "error",
+                    "msg": "Mobile field could not be empty."
+                }), 200
+            elif email == "":
+                return jsonify({
+                    "status": "error",
+                    "msg": "Email field could not be empty."
+                }), 200
+            else:
+                actual_password = str(dob[0:2]+dob[3:5]+dob[6:10])
+                password = sha256_crypt.hash(actual_password)
+                cur = mysql.connection.cursor()
+                cur.execute("INSERT INTO employee_tab(emp_id, name, gender, address, dob, mobile, email, role, password) "
+                            "VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s);", (emp_id, name, gender, address, dob, mobile, email, role, password))
+                mysql.connection.commit()
+                cur.close()
+            return jsonify({
+                "status":"Employee successfully added",
+                "data":employee
+            }), 200
+        except mysql.connection.DataError as err:
+            return jsonify({
+                "status": "error",
+                "msg": "Entered data is too long."
+            }), 200
+        except mysql.connection.IntegrityError as err:
+            return jsonify({
+                "status": "error",
+                "msg": "Email id already present in database."
+            }), 200
 
 
-@app.route("/search_employee", methods = ['GET', 'POST'])
+@app.route("/search_employee", methods = ['POST'])
 def search_employee():
     if request.method == "POST":
         data=request.get_json()
@@ -77,60 +131,118 @@ def search_employee():
         }),200
 
 
-@app.route("/show_employee", methods = ['GET'])
+@app.route("/get_all_employees", methods = ['GET'])
 def show_employee():
     cur = mysql.connection.cursor()
-    val = cur.execute("SELECT * FROM PERSONS")
+    val = cur.execute("SELECT * FROM employee_tab WHERE role!='HR'")
     emp_data = cur.fetchall()
+    employees_data=[]
+    for emp in emp_data:
+        data = {'emp_id':emp[0], 'name':emp[1], 'gender': emp[2], 'address': emp[3], 
+                        'dob': emp[4], 'mobile': emp[5], 'email': emp[6], 'role': emp[7]}
+        employees_data.append(data.copy())
     cur.close()
     return jsonify({
             "status":"success",
-            "data":emp_data,
+            "data":employees_data,
         }),200
 
 
 
-@app.route(f"/delete_employee/id/<id>")
-def delete_employee(id):
-    cur = mysql.connection.cursor()
-    cur.execute(f"DELETE FROM emp WHERE id={id};")
-    mysql.connection.commit()
-    cur.close()
-    return jsonify({
-            "status":"success",
-            "data":"employee deleted successfully"
-            
-        }),200
 
 
-@app.route("/update_employee/<id>", methods = ['GET', 'PUT'])
-def update_employee(id):
+@app.route("/employee/<emp_id>", methods = ['GET', 'PUT','DELETE'])
+def employee_operation(emp_id):
     if request.method== 'GET':
         cur = mysql.connection.cursor()
-        val = cur.execute(f"SELECT * FROM emp WHERE id={id};")
+        val = cur.execute(f"SELECT * FROM employee_tab WHERE emp_id={emp_id};")
         emp_data = cur.fetchone()
         cur.close()
-        return jsonify({
-                "status":"success",
-                "data":emp_data,
-            }),200
+        if val == 0:
+            return jsonify({
+                "status": "error",
+                "msg": "Employee not found."
+            }), 200
+        else:
+            return jsonify({
+                "status": "success",
+                "data": {'emp_id':emp_data[0], 'name':emp_data[1], 'gender': emp_data[2], 'address': emp_data[3], 
+                        'dob': emp_data[4], 'mobile': emp_data[5], 'email': emp_data[6], 'role': emp_data[7]},
+            }), 200
 
     elif request.method == 'PUT':
-        data=request.get_json()
-        emp_id = data['emp_id']
-        name = data['name']
-        gender = data['gender']
-        address = data['address']
-        dob = data['dob']
-        mobile = data['mobile']
+        try:
+            data = request.get_json()
+            name = data['name']
+            gender = data['gender']
+            address = data['address']
+            dob = data['dob']
+            mobile = data['mobile']
+            email = data['email']
+            if name == "":
+                return jsonify({
+                    "status": "error",
+                    "msg": "Name field could not be empty."
+                }), 200
+            elif address == "":
+                return jsonify({
+                    "status": "error",
+                    "msg": "Address field could not be empty."
+                }), 200
+            elif dob == "":
+                return jsonify({
+                    "status": "error",
+                    "msg": "DOB field could not be empty."
+                }), 200
+            elif mobile == "":
+                return jsonify({
+                    "status": "error",
+                    "msg": "Mobile field could not be empty."
+                }), 200
+            elif email == "":
+                return jsonify({
+                    "status": "error",
+                    "msg": "Email field could not be empty."
+                }), 200
+            else:
+                actual_password = str(dob[0:2]+dob[3:5]+dob[6:10])
+                password = sha256_crypt.hash(actual_password) #encrypt is deprecated
+                cur = mysql.connection.cursor()
+                val = cur.execute(f"UPDATE employee_tab SET name=%s, gender=%s, address=%s, dob=%s, mobile=%s, email=%s, password=%s"
+                            f"WHERE emp_id={emp_id};", (name, gender, address, dob, mobile, email, password))
+                mysql.connection.commit()
+                cur.close()
+                if val == 0:
+                    return jsonify({
+                        "status": "error",
+                        "msg": "Employee not found."
+                    }), 200
+                else:
+                    return jsonify({
+                        "status": "success",
+                        "msg": "Employee details updated successfully",
+                    }), 200
+        except mysql.connection.DataError as err:
+            return jsonify({
+                "status": "error",
+                "msg": "Entered data is too long."
+            }), 200
+
+    elif request.method == 'DELETE':
         cur = mysql.connection.cursor()
-        cur.execute(f"UPDATE emp SET emp_id=%s, name=%s, gender=%s, address=%s, dob=%s, mobile=%s  WHERE id={id};", (emp_id, name, gender, address, dob, mobile))
+        val = cur.execute(f"DELETE FROM employee_tab WHERE emp_id={emp_id};")
         mysql.connection.commit()
         cur.close()
-        return jsonify({
-            "status":"success",
-            "data":"Employee details updated successfully",
-        }),200
+        if val == 0:
+            return jsonify({
+                "status": "error",
+                "msg": "Employee not found."
+            }), 200
+        else:
+            return jsonify({
+                "status":"success",
+                "msg": "Employee deleted successfully"
+            }),200
 
 @app.route("/authenticate_user",methods=["POST"])
 def authenticate_user():
@@ -139,10 +251,18 @@ def authenticate_user():
     passwordEntered=user_detail['password']
     print(email,passwordEntered)
     cur = mysql.connection.cursor()
-    cur.execute('SELECT * FROM Admin WHERE email = %s', (email,))
+    cur.execute('SELECT * FROM employee_tab WHERE email = %s', (email,))
     user = cur.fetchone()
+    print(user)
     cur.close()
     if user:
+        print(user[7])
+        if user[7]!="HR":
+            return jsonify({
+                "status":"success",
+                "msg":"User is not authorized",
+                "data":user,
+            }),200
         passwordInDb=user[-1]
         isUser = sha256_crypt.verify(passwordEntered,passwordInDb)
         if(isUser):
