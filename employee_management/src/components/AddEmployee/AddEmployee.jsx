@@ -90,11 +90,11 @@ export default class AddEmployee extends Component {
         // }
         if (!this.state.addressLine1) {
             flag = 0;
-            errors.addressLine1 = "Address is required"
+            errors.addressLine1 = "Address line 1 is required"
         }
         if (!this.state.addressLine2) {
             flag = 0;
-            errors.addressLine2 = "Area is required"
+            errors.addressLine2 = "Address line 2 is required"
         }
         if (!this.state.city) {
             flag = 0;
@@ -199,6 +199,7 @@ export default class AddEmployee extends Component {
                 swal("Success", res.msg, "success").then(() => this.props.history.push("/dashboard"));
             }
             else {
+                this.setState({ isSubmitting: false })
                 swal("Error", res.msg, "error");
             }
         })
@@ -225,7 +226,7 @@ export default class AddEmployee extends Component {
                                 <input type="email" name="email" className="form-control" value={this.state.email} onChange={this.handleInput} />
                                 {this.state.errors.email && (<span className="text-danger">{this.state.errors.email}</span>)}
                             </div>
-                            <div className="row d-flex justify-content-between align-items-center w-100 pb-3">
+                            <div className="row d-flex justify-content-between align-items-center pb-3">
                                 <div className="col-12 col-md-2 label_color">Gender:</div>
                                 <div className="col-12 col-md-10 mt-2">
                                     <div className="d-flex flex-wrap justify-content-between align-items-center w-100">
@@ -238,7 +239,7 @@ export default class AddEmployee extends Component {
                                                 checked={this.state.gender === "Male"}
                                                 onChange={this.handleInput}
                                             />
-                                            <span className="ml-3">Male</span>
+                                            <span className="ml-1">Male</span>
                                         </label>
 
                                         <label className="col-12 col-md-4 radio-block">
@@ -250,7 +251,7 @@ export default class AddEmployee extends Component {
                                                 checked={this.state.gender === "Female"}
                                                 onChange={this.handleInput}
                                             />
-                                            <span className="ml-3">Female</span>
+                                            <span className="ml-1">Female</span>
                                         </label>
                                         <label className="col-12 col-md-4 radio-block">
                                             <input
@@ -261,7 +262,7 @@ export default class AddEmployee extends Component {
                                                 checked={this.state.gender === "Others"}
                                                 onChange={this.handleInput}
                                             />
-                                            <span className="ml-3">Others</span>
+                                            <span className="ml-1">Others</span>
                                         </label>
                                     </div>
                                 </div>
@@ -298,7 +299,7 @@ export default class AddEmployee extends Component {
                                 <input type="tel" name="mobileNo" className="form-control" value={this.state.mobileNo} placeholder="Enter number only" onChange={this.handleInput} />
                                 {this.state.errors.mobileNo && (<span className="text-danger">{this.state.errors.mobileNo}</span>)}
                             </div>
-                            <div className="text-center">
+                            <div className="text-center mt-5">
                                 <button className="btn btn-primary" type="submit" disabled={this.state.isSubmitting}>{this.state.isSubmitting ? "Submitting..." : "Submit"}</button>
                             </div>
                         </form>

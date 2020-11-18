@@ -42,7 +42,7 @@ def add_employee_to_db():
             dob = employee['dob']
             mobile = employee['mobile']
             email = employee['email']
-            role = 'Employee'
+            role = 'Asst System Engineer'
             if name == "":
                 return jsonify({
                     "status": "error",
@@ -499,7 +499,6 @@ def authenticate_user():
     user = cur.fetchone()
     cur.close()
     if user:
-        print(user[7])
         if user[7] != "HR":
             return jsonify({
                 "status": "success",

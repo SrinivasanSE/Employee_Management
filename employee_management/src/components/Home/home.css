@@ -5,11 +5,16 @@ body, html {
 
 .main-content_home{
     background-image: url("../../assets/images/background.jpg");
-    height: 600px;
+    height: 100%;
     background-position: center;
     background-repeat: no-repeat;
     background-size: cover;
     display: flex;
     justify-content: center;
     align-items:center;
+}
+@media (max-width:768px){
+  .main-content-default{
+      height:100%;
+   }
 }

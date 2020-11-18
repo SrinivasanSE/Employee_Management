@@ -239,9 +239,11 @@ export default class AddEmployee extends Component {
         }
         fetch(`/employee/${this.state.id}`, body).then((res) => res.json()).then((res) => {
             if (res.status === "success") {
+                this.setState({ isSubmitting: false })
                 swal("Success", res.msg, "success").then(() => this.props.history.push("/dashboard"));
             }
             else {
+                this.setState({ isSubmitting: false })
                 swal("Error", res.msg, "error");
             }
         })
@@ -251,7 +253,7 @@ export default class AddEmployee extends Component {
             <LayoutWrapper isLoggedIn={isUserAuthenticated()}>
                 <div className="add_employee_container">
                     <div className="form_container">
-                        <h3 className="add_employee_text">Update Employee Details</h3>
+                        <h3 className="add_employee_text">Update</h3>
                         <form className="form_content_add" onSubmit={this.handleSubmit}>
                             <div className="form-group">
                                 <label className="label_color">Firstname</label>
@@ -281,7 +283,7 @@ export default class AddEmployee extends Component {
                                                 checked={this.state.gender === "Male"}
                                                 onChange={this.handleInput}
                                             />
-                                            <span className="ml-3">Male</span>
+                                            <span className="ml-1">Male</span>
                                         </label>
 
                                         <label className="col-12 col-md-4 radio-block">
@@ -293,7 +295,7 @@ export default class AddEmployee extends Component {
                                                 checked={this.state.gender === "Female"}
                                                 onChange={this.handleInput}
                                             />
-                                            <span className="ml-3">Female</span>
+                                            <span className="ml-1">Female</span>
                                         </label>
                                         <label className="col-12 col-md-4 radio-block">
                                             <input
@@ -304,7 +306,7 @@ export default class AddEmployee extends Component {
                                                 checked={this.state.gender === "Others"}
                                                 onChange={this.handleInput}
                                             />
-                                            <span className="ml-3">Others</span>
+                                            <span className="ml-1">Others</span>
                                         </label>
                                     </div>
                                 </div>

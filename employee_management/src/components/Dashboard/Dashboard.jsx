@@ -4,10 +4,19 @@ import "./dashboard.css"
 import { FaEdit } from "react-icons/fa";
 import { MdDelete, MdClear } from "react-icons/md";
 import { HiUserAdd } from "react-icons/hi";
+import { GrView } from "react-icons/gr";
 import { Link } from "react-router-dom";
 import { Modal } from "react-bootstrap";
 import { isUserAuthenticated } from '../../helpers/auth';
 import swal from 'sweetalert';
+import HashLoader from "react-spinners/HashLoader";
+import { css } from "@emotion/core";
+
+const override = css`
+  display: block;
+  margin: 0 auto;
+  border-color: red;
+`;
 export default class Dashboard extends Component {
 
     constructor(props) {
@@ -37,11 +46,17 @@ export default class Dashboard extends Component {
                 location: '',
                 age: '',
 
+            },
+            loading: false,
+            showDetailModal: false,
+            employeeDetails: {
+
             }
         }
     }
 
     getAllEmployees = () => {
+        this.setState({ loading: true })
         fetch('/get_all_employees', {
             method: 'GET',
             headers: {
@@ -52,6 +67,7 @@ export default class Dashboard extends Component {
             .then(result => result.json())
             .then(res => {
                 this.setState({ allEmployees: res.data })
+                setTimeout(() => this.setState({ loading: false }), 3000)
             })
     }
 
@@ -61,6 +77,10 @@ export default class Dashboard extends Component {
 
     handleModal = () => {
         this.setState({ show: !this.state.show })
+    }
+
+    handleDetailModal = () => {
+        this.setState({ showDetailModal: !this.state.showDetailModal })
     }
 
     handleFilterModal = () => {
@@ -158,7 +178,7 @@ export default class Dashboard extends Component {
         }
         if (this.state.filterValues.id) {
             let isnum = /^\d+$/.test(this.state.filterValues.id);
-            if (!isnum) {
+            if (!isnum || this.state.filterValues.id.length !== 7) {
                 flag = false
                 error["id"] = "Enter 7 digit no only"
             }
@@ -166,6 +186,9 @@ export default class Dashboard extends Component {
         if (this.state.filterValues.name && !(/^[a-zA-Z ]+$/.test(this.state.filterValues.name))) {
             flag = false
             error["name"] = "Enter a valid name"
+        }
+        if ((!parseInt(this.state.filterValues.age) >= 21 && parseInt(this.state.filterValues.age) <= 60)) {
+            error["age"] = "Age should be between 21 and 60"
         }
         this.setState({ filterErrors: { ...error } })
         return flag
@@ -175,6 +198,7 @@ export default class Dashboard extends Component {
     filterEmployees = () => {
         let isValid = this.validateFilterValues();
         if (isValid) {
+            this.setState({ loading: true })
             let data = { ...this.state.filterValues, status: this.state.filter }
             this.handleFilterModal();
             fetch('/filter_employees', {
@@ -188,6 +212,7 @@ export default class Dashboard extends Component {
                 .then(result => result.json())
                 .then(res => {
                     this.setState({ allEmployees: res.data || [] })
+                    setTimeout(() => this.setState({ loading: false }), 3000)
                 })
         }
     }
@@ -211,45 +236,52 @@ export default class Dashboard extends Component {
     }
     render() {
         const isFilter = this.state.filterValues.id || this.state.filterValues.name || this.state.filterValues.location || this.state.filterValues.age
+        const { employeeDetails } = this.state
         return (
             <LayoutWrapper isLoggedIn={isUserAuthenticated()}>
                 <div className="container dashboard_content" >
-                    <div className="d-flex justify-content-between mb-4">
+                    <div className="d-flex flex-wrap justify-content-between mb-4">
                         <Link to="/employee/add" className="btn btn-outline-primary">Add employee <HiUserAdd /></Link>
-                        <div className="total_employees.txt">Total Employees: <span className="badge badge-pill badge-primary">{this.state.allEmployees.length}</span></div>
-                        <div><button className="btn btn-primary" onClick={this.handleFilterModal}>Filter </button>{isFilter && (<span className="remove_filter_btn" role="button"><MdClear onClick={this.handleRemoveFilters} title="remove filters" /></span>)}</div>
+                        <div className="total_employees.txt">Total Employees:{!this.state.loading ? (<span className="badge badge-pill badge-primary">{this.state.allEmployees.length}</span>) : (<span> Loading...</span>)}</div>
+                        <div><button className="btn btn-primary" onClick={this.handleFilterModal} disabled={this.state.allEmployees.length === 0 && !isFilter}>Filter </button>{isFilter && (<span className="remove_filter_btn" role="button"><MdClear onClick={this.handleRemoveFilters} title="remove filters" /></span>)}</div>
                     </div>
-                    {this.state.allEmployees.length !== 0 ? (
-                        <table className="table table-hover table-bordered">
-                            <thead>
-                                <tr>
-                                    <th scope="col">Employee Id</th>
-                                    <th scope="col">Name</th>
-                                    <th scope="col">Email</th>
-                                    <th scope="col">Work location</th>
-                                    <th scope="col">DOB</th>
-                                    <th scope="col">Mobile No</th>
-                                    <th scope="col">Action</th>
-
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {this.state.allEmployees.map((emp, id) => (
-                                    <tr key={emp.emp_id}>
-                                        <td>{emp.emp_id}</td>
-                                        <td>{emp.name}</td>
-                                        <td>{emp.email}</td>
-                                        <td>{emp.address.split('|')[2]}</td>
-                                        <td>{emp.dob}</td>
-                                        <td>{emp.mobile}</td>
-                                        <td><Link className="edit_button mr-5" to={`/employee/edit/${emp.emp_id}`}><FaEdit /></Link><span onClick={() => { this.setState({ deleteId: emp.emp_id }); this.handleModal() }} className="delete_button" to="/employee/delete"><MdDelete /></span></td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
+                    {this.state.loading ? (
+                        <HashLoader
+                            css={override}
+                            size={100}
+                            color={"#0069d9"}
+                            loading={this.state.loading}
+                        />
                     ) : (
-                            <div className="d-flex justify-content-center align-items-center">No employees found!</div>
-                        )}
+                            this.state.allEmployees.length !== 0 ? (
+                                <div>
+                                    <table className="table table-hover table-bordered">
+                                        <thead>
+                                            <tr>
+                                                <th scope="col">Employee Id</th>
+                                                <th scope="col">Name</th>
+                                                <th scope="col">Email</th>
+                                                <th scope="col">Mobile No</th>
+                                                <th scope="col">Action</th>
+
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {this.state.allEmployees.map((emp, id) => (
+                                                <tr key={emp.emp_id}>
+                                                    <td>{emp.emp_id}</td>
+                                                    <td>{emp.name}</td>
+                                                    <td>{emp.email}</td>
+                                                    <td>{emp.mobile}</td>
+                                                    <td><Link className="edit_button mr-2" to={`/employee/edit/${emp.emp_id}`}><FaEdit title="edit" /></Link><span title="view details" onClick={() => { this.setState({ employeeDetails: emp }); this.handleDetailModal() }} className="delete_button mr-2" to="/employee/delete"><GrView /></span><span title="delete" onClick={() => { this.setState({ deleteId: emp.emp_id }); this.handleModal() }} className="delete_button"><MdDelete /></span></td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            ) : (
+                                    <div className="d-flex justify-content-center align-items-center helper_text">No employees found!</div>
+                                ))}
 
                 </div>
                 <Modal show={this.state.show} onHide={this.handleModal}>
@@ -260,6 +292,48 @@ export default class Dashboard extends Component {
                     <Modal.Footer>
                         <button className="btn btn-outline-danger" onClick={this.handleDelete}>Delete</button>
                         <button className="btn btn-primary" onClick={this.handleModal}>Cancel</button>
+                    </Modal.Footer>
+                </Modal>
+                <Modal show={this.state.showDetailModal} onHide={this.handleDetailModal}>
+                    <Modal.Header closeButton>
+                        <Modal.Title>Employee Details</Modal.Title>
+                    </Modal.Header>
+                    <Modal.Body>
+                        <div className="d-flex justify-content-between align-items-center details">
+                            <div className="title">Employee Id</div>
+                            <div className="address_text">{employeeDetails.emp_id}</div>
+                        </div>
+                        <div className="d-flex justify-content-between align-items-center details">
+                            <div className="title">Name</div>
+                            <div className="address_text">{employeeDetails.name}</div>
+                        </div>
+                        <div className="d-flex justify-content-between align-items-center details">
+                            <div className="title">Email Id</div>
+                            <div className="address_text">{employeeDetails.email}</div>
+                        </div>
+                        <div className="d-flex justify-content-between align-items-center details">
+                            <div className="title">Date of Birth</div>
+                            <div className="address_text">{employeeDetails.dob}</div>
+                        </div>
+                        <div className="d-flex justify-content-between align-items-center details">
+                            <div className="title">Role</div>
+                            <div className="address_text">{employeeDetails.role}</div>
+                        </div>
+                        <div className="d-flex justify-content-between align-items-center details">
+                            <div className="title">Gender</div>
+                            <div className="address_text">{employeeDetails.gender || "-"}</div>
+                        </div>
+                        <div className="d-flex justify-content-between align-items-center details">
+                            <div className="title">Mobile No</div>
+                            <div className="address_text">{employeeDetails.mobile}</div>
+                        </div>
+                        <div className="details">
+                            <div className="title mb-1">Address</div>
+                            <div className="address_text">{employeeDetails.address?.replaceAll("|", ",")}</div>
+                        </div>
+                    </Modal.Body>
+                    <Modal.Footer>
+                        <button className="btn btn-primary" onClick={this.handleDetailModal}>Close</button>
                     </Modal.Footer>
                 </Modal>
                 <Modal size="md" show={this.state.showFilterModal} onHide={this.handleFilterModal}>

@@ -3,8 +3,13 @@
     height: 100vh;
 }
 
-.main-content{
+.main-content-default{
    width:100%;
+   height:100%
+}
+
+.main-content{
+    width: 100%;
 }
 
 .headerLink{
@@ -29,4 +34,10 @@
 
 .logout_button{
     cursor:pointer;
+}
+
+@media (max-width:768px){
+    .main-content-default{
+        height:auto;
+     }
 }

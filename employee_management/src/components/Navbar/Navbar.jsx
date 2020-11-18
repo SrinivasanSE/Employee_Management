@@ -9,10 +9,11 @@ const LayoutWrapper = (props) => {
         localStorage.clear();
         window.location.href = "/home"
     }
+    const page = window.location.href.split('/')
     return (
         <div className="content-container">
             <Navbar collapseOnSelect expand="lg" bg="dark" fixed="top" variant="dark">
-                <Navbar.Brand href="/home">Manager</Navbar.Brand>
+                <Navbar.Brand href="/home">EMS</Navbar.Brand>
                 <Navbar.Toggle aria-controls="responsive-navbar-nav" />
                 <Navbar.Collapse id="responsive-navbar-nav">
                     <Nav className="ml-auto">
@@ -52,7 +53,7 @@ const LayoutWrapper = (props) => {
                     </Nav>
                 </Navbar.Collapse>
             </Navbar>
-            <div className="main-content">
+            <div className={page[4] === "add" || page[4] === "edit" ? "main-content" : "main-content-default"}>
                 {props.children}
             </div>
             <div className="footer">&copy; Copyrights {new Date().getFullYear()} All rights reserved</div>
