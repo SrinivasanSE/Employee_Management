@@ -3,8 +3,13 @@ from datetime import date
 from flask_mysqldb import MySQL
 from passlib.hash import sha256_crypt
 import random
+from os import environ
 
 app = Flask(__name__)
+# app.config['MYSQL_HOST'] = environ.get('MYSQL_HOST')
+# app.config['MYSQL_USER'] = environ.get('MYSQL_USER')
+# app.config['MYSQL_PASSWORD'] = environ.get('MYSQL_PASSWORD')
+# app.config['MYSQL_DB'] = environ.get('MYSQL_DB')
 app.config.from_pyfile('settings.py')
 app.config['MYSQL_HOST'] = 'localhost'
 app.config['MYSQL_USER'] = 'root'
@@ -90,23 +95,23 @@ def add_employee_to_db():
             }), 200
 
 
-def calculate_age(dob):
-    age = 0
-    day = int(dob[0:2])
-    month = int(dob[3:5])
-    year = int(dob[6:10])
-    today = date.today()
-    if today.year > year:
-        if today.month > month:
-            age = today.year - year
-        elif today.month == month:
-            if today.day > day:
-                age = today.year - year
-            else:
-                age = today.year - year - 1
-        else:
-            age = today.year - year - 1
-    return age
+# def calculate_age(dob):
+#     age = 0
+#     day = int(dob[0:2])
+#     month = int(dob[3:5])
+#     year = int(dob[6:10])
+#     today = date.today()
+#     if today.year > year:
+#         if today.month > month:
+#             age = today.year - year
+#         elif today.month == month:
+#             if today.day > day:
+#                 age = today.year - year
+#             else:
+#                 age = today.year - year - 1
+#         else:
+#             age = today.year - year - 1
+#     return age
 
 
 # @app.route("/filter_employees", methods=['POST'])
@@ -162,7 +167,7 @@ def calculate_age(dob):
 #                 # name
 #                 cnt = cur.execute(f"SELECT * FROM employee_tab WHERE name like '{name}%';")
 #                 emp = cur.fetchall()
-
+#
 #             elif binary == 3:
 #                 # location, age
 #                 cnt = cur.execute(f"SELECT * FROM employee_tab WHERE address like '%{location}%';")
@@ -194,7 +199,7 @@ def calculate_age(dob):
 #             cur.close()
 #             if emp == ():
 #                 return jsonify({
-#                     "status": "success",
+#                     "status": "error",
 #                     "msg": "No data found.",
 #                 }), 200
 #             else:
@@ -211,11 +216,11 @@ def calculate_age(dob):
 def get_employees_data(emp_data):
     employees_data = []
     for emp in emp_data:
-        print(emp)
         data = {'emp_id': emp[0], 'name': emp[1], 'gender': emp[2], 'address': emp[3],
                 'dob': emp[4], 'mobile': emp[5], 'email': emp[6], 'role': emp[7]}
         employees_data.append(data.copy())
     return employees_data[:]
+
 
 def get_employee_data(emp):
     employees_data = []
@@ -223,6 +228,7 @@ def get_employee_data(emp):
                 'dob': emp[4], 'mobile': emp[5], 'email': emp[6], 'role': emp[7]}
     employees_data.append(data.copy())
     return employees_data[:]
+
 
 @app.route("/filter_employees", methods=['POST'])
 def search_employee():
@@ -234,14 +240,14 @@ def search_employee():
             location = data["location"]
             status=data["status"]
             cur = mysql.connection.cursor()
-            #id
-            #name
-            #location
+            # id
+            # name
+            # location
             # age
             # name and location
             # name and age
             # location and age
-            #name and location and age
+            # name and location and age
             if status["id"]:
                 cnt = cur.execute(f"SELECT * FROM employee_tab WHERE emp_id={emp_id} and role!='HR';")
                 emp = cur.fetchone()
@@ -319,7 +325,7 @@ def search_employee():
                     "status":"error",
                     "msg":"Employees not found"
                     }),200
-            
+
             if status["name"]:
                  cnt = cur.execute(f"SELECT * FROM employee_tab WHERE UPPER(name) like UPPER('{name}%') and role!='HR';")
                  emp = cur.fetchall()
@@ -369,18 +375,12 @@ def search_employee():
                     "status":"error",
                     "msg":"Employees not found"
                     }),200
-            
 
-
-                
-           
-
-       
 
 @app.route("/get_all_employees", methods=['GET'])
 def show_employee():
     cur = mysql.connection.cursor()
-    val = cur.execute("SELECT * FROM employee_tab WHERE role!='HR'")
+    val = cur.execute("SELECT * FROM employee_tab WHERE role!='HR';")
     emp_data = cur.fetchall()
     employees_data = []
     for emp in emp_data:
@@ -398,7 +398,7 @@ def show_employee():
 def employee_operation(emp_id):
     if request.method == 'GET':
         cur = mysql.connection.cursor()
-        val = cur.execute(f"SELECT * FROM employee_tab WHERE emp_id={emp_id};")
+        val = cur.execute(f"SELECT * FROM employee_tab WHERE emp_id={emp_id} and role!='HR'")
         emp_data = cur.fetchone()
         cur.close()
         if val == 0:
@@ -453,7 +453,7 @@ def employee_operation(emp_id):
                 cur = mysql.connection.cursor()
                 val = cur.execute(
                     f"UPDATE employee_tab SET name=%s, gender=%s, address=%s, dob=%s, mobile=%s, email=%s, password=%s"
-                    f"WHERE emp_id={emp_id};", (name, gender, address, dob, mobile, email, password))
+                    f"WHERE emp_id={emp_id} and role!='HR';", (name, gender, address, dob, mobile, email, password))
                 mysql.connection.commit()
                 cur.close()
                 if val == 0:
@@ -474,7 +474,7 @@ def employee_operation(emp_id):
 
     elif request.method == 'DELETE':
         cur = mysql.connection.cursor()
-        val = cur.execute(f"DELETE FROM employee_tab WHERE emp_id={emp_id};")
+        val = cur.execute(f"DELETE FROM employee_tab WHERE emp_id={emp_id} and role!='HR';")
         mysql.connection.commit()
         cur.close()
         if val == 0:
@@ -494,11 +494,9 @@ def authenticate_user():
     user_detail = request.get_json()
     email = user_detail["email"]
     passwordEntered = user_detail['password']
-    print(email, passwordEntered)
     cur = mysql.connection.cursor()
     cur.execute('SELECT * FROM employee_tab WHERE email = %s', (email,))
     user = cur.fetchone()
-    print(user)
     cur.close()
     if user:
         print(user[7])
