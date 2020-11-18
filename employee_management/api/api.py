@@ -263,7 +263,7 @@ def search_employee():
                     "msg":"Employee not found"
                     }),200
             if status["name"] and status["location"] and status["age"]:
-                cnt = cur.execute(f"SELECT * FROM employee_tab WHERE UPPER(name) like UPPER('{name}%') and UPPER(address) like UPPER('%{location}%') and TIMESTAMPDIFF(YEAR, STR_TO_DATE(dob,'%d/%m/%Y'), CURDATE())>={age} and role!='HR';")
+                cnt = cur.execute(f"SELECT * FROM employee_tab WHERE UPPER(name) like UPPER('{name}%') and UPPER(address) like UPPER('%{location}%') and TIMESTAMPDIFF(YEAR, STR_TO_DATE(dob,'%d/%m/%Y'), CURDATE())={age} and role!='HR';")
                 emp = cur.fetchall()
                 if emp:
                      employees_data=get_employees_data(emp)
@@ -294,7 +294,7 @@ def search_employee():
                     }),200
             if status["name"] and status["age"]:
                 age=int(age)
-                cnt = cur.execute(f"SELECT * from employee_tab where TIMESTAMPDIFF(YEAR, STR_TO_DATE(dob,'%d/%m/%Y'), CURDATE())>={age} and UPPER(name) like UPPER('{name}%') and role!='HR';")
+                cnt = cur.execute(f"SELECT * from employee_tab where TIMESTAMPDIFF(YEAR, STR_TO_DATE(dob,'%d/%m/%Y'), CURDATE())={age} and UPPER(name) like UPPER('{name}%') and role!='HR';")
                 emp = cur.fetchall()
                 if emp:
                      employees_data=get_employees_data(emp)
@@ -310,7 +310,7 @@ def search_employee():
                     }),200
             if status["location"] and status["age"]:
                 age=int(age)
-                cnt = cur.execute(f"SELECT * from employee_tab where TIMESTAMPDIFF(YEAR, STR_TO_DATE(dob,'%d/%m/%Y'), CURDATE())>={age} and UPPER(address) like UPPER('%{location}%') and role!='HR';")
+                cnt = cur.execute(f"SELECT * from employee_tab where TIMESTAMPDIFF(YEAR, STR_TO_DATE(dob,'%d/%m/%Y'), CURDATE())={age} and UPPER(address) like UPPER('%{location}%') and role!='HR';")
                 emp = cur.fetchall()
                 if emp:
                      employees_data=get_employees_data(emp)
@@ -360,7 +360,7 @@ def search_employee():
                 # Refer https://stackoverflow.com/questions/5773405/calculate-age-in-mysql-innodb
                  #Select *FROM employee WHERE TIMESTAMPDIFF(YEAR,bdate,CURDATE())>= 60
                  age=int(age)
-                 cnt = cur.execute(f"SELECT * from employee_tab where TIMESTAMPDIFF(YEAR, STR_TO_DATE(dob,'%d/%m/%Y'), CURDATE())>={age} and role!='HR';")
+                 cnt = cur.execute(f"SELECT * from employee_tab where TIMESTAMPDIFF(YEAR, STR_TO_DATE(dob,'%d/%m/%Y'), CURDATE())={age} and role!='HR';")
                  emp = cur.fetchall()
                  if emp:
                      employees_data=get_employees_data(emp)
