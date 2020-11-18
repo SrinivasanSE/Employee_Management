@@ -6,10 +6,15 @@ import random
 from os import environ
 
 app = Flask(__name__)
-app.config['MYSQL_HOST'] = environ.get('MYSQL_HOST')
-app.config['MYSQL_USER'] = environ.get('MYSQL_USER')
-app.config['MYSQL_PASSWORD'] = environ.get('MYSQL_PASSWORD')
-app.config['MYSQL_DB'] = environ.get('MYSQL_DB')
+# app.config['MYSQL_HOST'] = environ.get('MYSQL_HOST')
+# app.config['MYSQL_USER'] = environ.get('MYSQL_USER')
+# app.config['MYSQL_PASSWORD'] = environ.get('MYSQL_PASSWORD')
+# app.config['MYSQL_DB'] = environ.get('MYSQL_DB')
+app.config.from_pyfile('settings.py')
+app.config['MYSQL_HOST'] = 'localhost'
+app.config['MYSQL_USER'] = 'root'
+app.config['MYSQL_PASSWORD'] = app.config.get("MYSQL_PASSWORD")  # your password
+app.config['MYSQL_DB'] = 'employee_db'
 
 mysql = MySQL(app)
 
@@ -109,104 +114,273 @@ def calculate_age(dob):
     return age
 
 
-@app.route("/search_employee", methods=['POST'])
+# @app.route("/filter_employees", methods=['POST'])
+# def search_employee():
+#     if request.method == "POST":
+#         try:
+#             data = request.get_json()
+#             print("heerer")
+#             emp_id = data["id"]
+#             name = data["name"]
+#             age = int(data["age"])
+#             location = data["location"]
+#             cur = mysql.connection.cursor()
+#             val = cur.execute("SELECT * FROM employee_tab")
+#             emp_data = cur.fetchall()
+#             lst = []
+#             emp = ()
+#             print("heeeeeeeeeeeeeeeeeeeeeeeeeeeee")
+#             binary_list = []
+#             if name == "":
+#                 binary_list.append(0)
+#             else:
+#                 binary_list.append(1)
+#             if age == "":
+#                 binary_list.append(0)
+#             else:
+#                 binary_list.append(1)
+#             if location == "":
+#                 binary_list.append(0)
+#             else:
+#                 binary_list.append(1)
+#             binary = int(str(str(binary_list[0]) + str(binary_list[1]) + str(binary_list[2])), 2)
+#             if emp_id != "":
+#                 print("=================")
+#                 cnt = cur.execute(f"SELECT * FROM employee_tab WHERE emp_id={emp_id};")
+#                 emp = cur.fetchone()
+#             elif emp_id == "" and binary == 0:
+#                 return jsonify({
+#                     "status": "error",
+#                     "msg": "All fields could not be empty."
+#                 }), 200
+#             elif binary == 1:
+#                 # location
+#                 cnt = cur.execute(f"SELECT * FROM employee_tab WHERE address like '%{location}%';")
+#                 emp = cur.fetchall()
+#             elif binary == 2:
+#                 # age
+#                 for i in emp_data:
+#                     if calculate_age(i[4]) == age:
+#                         lst.append(i)
+#                 emp = tuple(lst)
+#             elif binary == 4:
+#                 # name
+#                 cnt = cur.execute(f"SELECT * FROM employee_tab WHERE name like '{name}%';")
+#                 emp = cur.fetchall()
+
+#             elif binary == 3:
+#                 # location, age
+#                 cnt = cur.execute(f"SELECT * FROM employee_tab WHERE address like '%{location}%';")
+#                 emp = cur.fetchall()
+#                 for i in emp:
+#                     if calculate_age(i[4]) == age:
+#                         lst.append(i)
+#                 emp = tuple(lst)
+#             elif binary == 5:
+#                 # name, location
+#                 cnt = cur.execute(f"SELECT * FROM employee_tab WHERE name like '{name}%' and address like '%{location}%';")
+#                 emp = cur.fetchall()
+#             elif binary == 6:
+#                 # name, age
+#                 cnt = cur.execute(f"SELECT * FROM employee_tab WHERE name like '{name}%';")
+#                 emp = cur.fetchall()
+#                 for i in emp:
+#                     if calculate_age(i[4]) == age:
+#                         lst.append(i)
+#                 emp = tuple(lst)
+#             elif binary == 7:
+#                 # ame, age , location
+#                 cnt = cur.execute(f"SELECT * FROM employee_tab WHERE name like '{name}%' and address like '%{location}%';")
+#                 emp = cur.fetchall()
+#                 for i in emp:
+#                     if calculate_age(i[4]) == age:
+#                         lst.append(i)
+#                 emp = tuple(lst)
+#             cur.close()
+#             if emp == ():
+#                 return jsonify({
+#                     "status": "success",
+#                     "msg": "No data found.",
+#                 }), 200
+#             else:
+#                 return jsonify({
+#                     "status": "success",
+#                     "data": emp,
+#                 }), 200
+#         except ValueError:
+#             return jsonify({
+#                 "status": "error",
+#                 "msg": "Invalid age entered",
+#             }), 200
+
+def get_employees_data(emp_data):
+    employees_data = []
+    for emp in emp_data:
+        print(emp)
+        data = {'emp_id': emp[0], 'name': emp[1], 'gender': emp[2], 'address': emp[3],
+                'dob': emp[4], 'mobile': emp[5], 'email': emp[6], 'role': emp[7]}
+        employees_data.append(data.copy())
+    return employees_data[:]
+
+def get_employee_data(emp):
+    employees_data = []
+    data = {'emp_id': emp[0], 'name': emp[1], 'gender': emp[2], 'address': emp[3],
+                'dob': emp[4], 'mobile': emp[5], 'email': emp[6], 'role': emp[7]}
+    employees_data.append(data.copy())
+    return employees_data[:]
+
+@app.route("/filter_employees", methods=['POST'])
 def search_employee():
     if request.method == "POST":
-        try:
             data = request.get_json()
-            emp_id = data["emp_id"]
+            emp_id = data["id"]
             name = data["name"]
-            age = int(data["age"])
+            age = data["age"]
             location = data["location"]
+            status=data["status"]
             cur = mysql.connection.cursor()
-            val = cur.execute("SELECT * FROM employee_tab")
-            emp_data = cur.fetchall()
-            lst = []
-            emp = ()
-
-            binary_list = []
-            if name == "":
-                binary_list.append(0)
-            else:
-                binary_list.append(1)
-            if age == "":
-                binary_list.append(0)
-            else:
-                binary_list.append(1)
-            if location == "":
-                binary_list.append(0)
-            else:
-                binary_list.append(1)
-            binary = int(str(str(binary_list[0]) + str(binary_list[1]) + str(binary_list[2])), 2)
-
-            if emp_id != "":
-                cnt = cur.execute(f"SELECT * FROM employee_tab WHERE emp_id={emp_id};")
+            #id
+            #name
+            #location
+            # age
+            # name and location
+            # name and age
+            # location and age
+            #name and location and age
+            if status["id"]:
+                cnt = cur.execute(f"SELECT * FROM employee_tab WHERE emp_id={emp_id} and role!='HR';")
                 emp = cur.fetchone()
-            elif emp_id == "" and binary == 0:
+                if emp:
+                    employees_data=get_employee_data(emp)
+                    return jsonify({
+                    "data":employees_data,
+                    "status":"success",
+                    "msg":"Employee found"
+                    }),200
                 return jsonify({
-                    "status": "error",
-                    "msg": "All fields could not be empty."
-                }), 200
-            elif binary == 1:
-                # location
-                cnt = cur.execute(f"SELECT * FROM employee_tab WHERE address like '%{location}%';")
+                    "data":[],
+                    "status":"error",
+                    "msg":"Employee not found"
+                    }),200
+            if status["name"] and status["location"] and status["age"]:
+                cnt = cur.execute(f"SELECT * FROM employee_tab WHERE UPPER(name) like UPPER('{name}%') and UPPER(address) like UPPER('%{location}%') and TIMESTAMPDIFF(YEAR, STR_TO_DATE(dob,'%d/%m/%Y'), CURDATE())>={age} and role!='HR';")
                 emp = cur.fetchall()
-            elif binary == 2:
-                # age
-                for i in emp_data:
-                    if calculate_age(i[4]) == age:
-                        lst.append(i)
-                emp = tuple(lst)
-            elif binary == 4:
-                # name
-                cnt = cur.execute(f"SELECT * FROM employee_tab WHERE name like '{name}%';")
+                if emp:
+                     employees_data=get_employees_data(emp)
+                     return jsonify({
+                    "data":employees_data,
+                    "status":"success",
+                    "msg":"Employee found"
+                    }),200
+                return jsonify({
+                    "data":[],
+                    "status":"error",
+                    "msg":"Employees not found"
+                    }),200
+            if status["name"] and status["location"]:
+                cnt = cur.execute(f"SELECT * FROM employee_tab WHERE UPPER(name) like UPPER('{name}%') and UPPER(address) like UPPER('%{location}%') and role!='HR';")
                 emp = cur.fetchall()
+                if emp:
+                     employees_data=get_employees_data(emp)
+                     return jsonify({
+                    "data":employees_data,
+                    "status":"success",
+                    "msg":"Employee found"
+                    }),200
+                return jsonify({
+                    "data":[],
+                    "status":"error",
+                    "msg":"Employees not found"
+                    }),200
+            if status["name"] and status["age"]:
+                age=int(age)
+                cnt = cur.execute(f"SELECT * from employee_tab where TIMESTAMPDIFF(YEAR, STR_TO_DATE(dob,'%d/%m/%Y'), CURDATE())>={age} and UPPER(name) like UPPER('{name}%') and role!='HR';")
+                emp = cur.fetchall()
+                if emp:
+                     employees_data=get_employees_data(emp)
+                     return jsonify({
+                    "data":employees_data,
+                    "status":"success",
+                    "msg":"Employee found"
+                    }),200
+                return jsonify({
+                    "data":[],
+                    "status":"error",
+                    "msg":"Employees not found"
+                    }),200
+            if status["location"] and status["age"]:
+                age=int(age)
+                cnt = cur.execute(f"SELECT * from employee_tab where TIMESTAMPDIFF(YEAR, STR_TO_DATE(dob,'%d/%m/%Y'), CURDATE())>={age} and UPPER(address) like UPPER('%{location}%') and role!='HR';")
+                emp = cur.fetchall()
+                if emp:
+                     employees_data=get_employees_data(emp)
+                     return jsonify({
+                    "data":employees_data,
+                    "status":"success",
+                    "msg":"Employee found"
+                    }),200
+                return jsonify({
+                    "data":[],
+                    "status":"error",
+                    "msg":"Employees not found"
+                    }),200
+            
+            if status["name"]:
+                 cnt = cur.execute(f"SELECT * FROM employee_tab WHERE UPPER(name) like UPPER('{name}%') and role!='HR';")
+                 emp = cur.fetchall()
+                 if emp:
+                     employees_data=get_employees_data(emp)
+                     return jsonify({
+                    "data":employees_data,
+                    "status":"success",
+                    "msg":"Employee found"
+                    }),200
+                 return jsonify({
+                    "data":[],
+                    "status":"error",
+                    "msg":"Employees not found"
+                    }),200
+            if status["location"]:
+                 cnt = cur.execute(f"SELECT * FROM employee_tab WHERE UPPER(address) like UPPER('%{location}%') and role!='HR';")
+                 emp = cur.fetchall()
+                 if emp:
+                     employees_data=get_employees_data(emp)
+                     return jsonify({
+                    "data":employees_data,
+                    "status":"success",
+                    "msg":"Employee found"
+                    }),200
+                 return jsonify({
+                    "data":[],
+                    "status":"error",
+                    "msg":"Employees not found"
+                    }),200
+            if status["age"]:
+                #To calculate age
+                # Refer https://stackoverflow.com/questions/5773405/calculate-age-in-mysql-innodb
+                 #Select *FROM employee WHERE TIMESTAMPDIFF(YEAR,bdate,CURDATE())>= 60
+                 age=int(age)
+                 cnt = cur.execute(f"SELECT * from employee_tab where TIMESTAMPDIFF(YEAR, STR_TO_DATE(dob,'%d/%m/%Y'), CURDATE())>={age} and role!='HR';")
+                 emp = cur.fetchall()
+                 if emp:
+                     employees_data=get_employees_data(emp)
+                     return jsonify({
+                    "data":employees_data,
+                    "status":"success",
+                    "msg":"Employee found"
+                    }),200
+                 return jsonify({
+                    "data":[],
+                    "status":"error",
+                    "msg":"Employees not found"
+                    }),200
+            
 
-            elif binary == 3:
-                # location, age
-                cnt = cur.execute(f"SELECT * FROM employee_tab WHERE address like '%{location}%';")
-                emp = cur.fetchall()
-                for i in emp:
-                    if calculate_age(i[4]) == age:
-                        lst.append(i)
-                emp = tuple(lst)
-            elif binary == 5:
-                # name, location
-                cnt = cur.execute(f"SELECT * FROM employee_tab WHERE name like '{name}%' and address like '%{location}%';")
-                emp = cur.fetchall()
-            elif binary == 6:
-                # name, age
-                cnt = cur.execute(f"SELECT * FROM employee_tab WHERE name like '{name}%';")
-                emp = cur.fetchall()
-                for i in emp:
-                    if calculate_age(i[4]) == age:
-                        lst.append(i)
-                emp = tuple(lst)
-            elif binary == 7:
-                # ame, age , location
-                cnt = cur.execute(f"SELECT * FROM employee_tab WHERE name like '{name}%' and address like '%{location}%';")
-                emp = cur.fetchall()
-                for i in emp:
-                    if calculate_age(i[4]) == age:
-                        lst.append(i)
-                emp = tuple(lst)
-            cur.close()
-            if emp == ():
-                return jsonify({
-                    "status": "success",
-                    "msg": "No data found.",
-                }), 200
-            else:
-                return jsonify({
-                    "status": "success",
-                    "data": emp,
-                }), 200
-        except ValueError:
-            return jsonify({
-                "status": "error",
-                "msg": "Invalid age entered",
-            }), 200
 
+                
+           
+
+       
 
 @app.route("/get_all_employees", methods=['GET'])
 def show_employee():
