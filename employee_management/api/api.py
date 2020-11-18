@@ -167,7 +167,7 @@ def calculate_age(dob):
 #                 # name
 #                 cnt = cur.execute(f"SELECT * FROM employee_tab WHERE name like '{name}%';")
 #                 emp = cur.fetchall()
-
+#
 #             elif binary == 3:
 #                 # location, age
 #                 cnt = cur.execute(f"SELECT * FROM employee_tab WHERE address like '%{location}%';")
@@ -199,7 +199,7 @@ def calculate_age(dob):
 #             cur.close()
 #             if emp == ():
 #                 return jsonify({
-#                     "status": "success",
+#                     "status": "error",
 #                     "msg": "No data found.",
 #                 }), 200
 #             else:
@@ -324,7 +324,7 @@ def search_employee():
                     "status":"error",
                     "msg":"Employees not found"
                     }),200
-            
+
             if status["name"]:
                  cnt = cur.execute(f"SELECT * FROM employee_tab WHERE UPPER(name) like UPPER('{name}%') and role!='HR';")
                  emp = cur.fetchall()
@@ -374,7 +374,7 @@ def search_employee():
                     "status":"error",
                     "msg":"Employees not found"
                     }),200
-            
+
 
 
                 
@@ -385,7 +385,7 @@ def search_employee():
 @app.route("/get_all_employees", methods=['GET'])
 def show_employee():
     cur = mysql.connection.cursor()
-    val = cur.execute("SELECT * FROM employee_tab WHERE role!='HR'")
+    val = cur.execute("SELECT * FROM employee_tab WHERE role!='HR';")
     emp_data = cur.fetchall()
     employees_data = []
     for emp in emp_data:
@@ -403,7 +403,7 @@ def show_employee():
 def employee_operation(emp_id):
     if request.method == 'GET':
         cur = mysql.connection.cursor()
-        val = cur.execute(f"SELECT * FROM employee_tab WHERE emp_id={emp_id};")
+        val = cur.execute(f"SELECT * FROM employee_tab WHERE emp_id={emp_id} and role!='HR'")
         emp_data = cur.fetchone()
         cur.close()
         if val == 0:
@@ -458,7 +458,7 @@ def employee_operation(emp_id):
                 cur = mysql.connection.cursor()
                 val = cur.execute(
                     f"UPDATE employee_tab SET name=%s, gender=%s, address=%s, dob=%s, mobile=%s, email=%s, password=%s"
-                    f"WHERE emp_id={emp_id};", (name, gender, address, dob, mobile, email, password))
+                    f"WHERE emp_id={emp_id} and role!='HR';", (name, gender, address, dob, mobile, email, password))
                 mysql.connection.commit()
                 cur.close()
                 if val == 0:
@@ -479,7 +479,7 @@ def employee_operation(emp_id):
 
     elif request.method == 'DELETE':
         cur = mysql.connection.cursor()
-        val = cur.execute(f"DELETE FROM employee_tab WHERE emp_id={emp_id};")
+        val = cur.execute(f"DELETE FROM employee_tab WHERE emp_id={emp_id} and role!='HR';")
         mysql.connection.commit()
         cur.close()
         if val == 0:
