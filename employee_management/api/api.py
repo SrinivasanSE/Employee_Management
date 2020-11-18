@@ -3,12 +3,13 @@ from datetime import date
 from flask_mysqldb import MySQL
 from passlib.hash import sha256_crypt
 import random
+from os import environ
 
 app = Flask(__name__)
-app.config['MYSQL_HOST'] = 'localhost'
-app.config['MYSQL_USER'] = 'root'
-app.config['MYSQL_PASSWORD'] = 'rajesh1999@MySQL'  # your password
-app.config['MYSQL_DB'] = 'employee_db'
+app.config['MYSQL_HOST'] = environ.get('MYSQL_HOST')
+app.config['MYSQL_USER'] = environ.get('MYSQL_USER')
+app.config['MYSQL_PASSWORD'] = environ.get('MYSQL_PASSWORD')
+app.config['MYSQL_DB'] = environ.get('MYSQL_DB')
 
 mysql = MySQL(app)
 
@@ -324,11 +325,9 @@ def authenticate_user():
     user_detail = request.get_json()
     email = user_detail["email"]
     passwordEntered = user_detail['password']
-    print(email, passwordEntered)
     cur = mysql.connection.cursor()
     cur.execute('SELECT * FROM employee_tab WHERE email = %s', (email,))
     user = cur.fetchone()
-    print(user)
     cur.close()
     if user:
         print(user[7])
