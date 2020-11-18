@@ -110,6 +110,13 @@ export default class Dashboard extends Component {
     handleCheckbox = (e) => {
         let filter = this.state.filter;
         let filterValues = this.state.filterValues
+        let errors = this.state.filterErrors;
+        errors = {
+            id: '',
+            name: '',
+            location: '',
+            age: '',
+        }
         if (e.target.name === "id") {
             filterValues["name"] = ""
             filter["name"] = false;
@@ -118,11 +125,12 @@ export default class Dashboard extends Component {
             filterValues["age"] = ""
             filter["age"] = false;
         }
+
         filter[e.target.name] = e.target.checked;
         if (!e.target.checked) {
             filterValues[e.target.name] = "";
         }
-        this.setState({ filter: { ...filter }, filterValues: { ...filterValues } })
+        this.setState({ filter: { ...filter }, filterValues: { ...filterValues }, filterErrors: { ...errors } })
 
     }
 
@@ -178,7 +186,20 @@ export default class Dashboard extends Component {
     }
 
     handleRemoveFilters = () => {
-        this.setState({ filterValues: {}, filter: {} })
+        this.setState({
+            filter: {
+                id: false,
+                name: false,
+                location: false,
+                age: false,
+            },
+            filterValues: {
+                id: '',
+                name: '',
+                location: '',
+                age: '',
+            },
+        })
         this.getAllEmployees();
     }
     render() {
@@ -189,7 +210,7 @@ export default class Dashboard extends Component {
                     <div className="d-flex justify-content-between mb-4">
                         <Link to="/employee/add" className="btn btn-outline-primary">Add employee <HiUserAdd /></Link>
                         <div className="total_employees.txt">Total Employees: <span className="badge badge-pill badge-primary">{this.state.allEmployees.length}</span></div>
-                        <div><button className="btn btn-primary" onClick={this.handleFilterModal}>Filter </button>{isFilter && (<span><MdClear onClick={this.handleRemoveFilters} title="remove filters" /></span>)}</div>
+                        <div><button className="btn btn-primary" onClick={this.handleFilterModal}>Filter </button>{isFilter && (<span className="remove_filter_btn" role="button"><MdClear onClick={this.handleRemoveFilters} title="remove filters" /></span>)}</div>
                     </div>
                     {this.state.allEmployees.length !== 0 ? (
                         <table className="table table-hover table-bordered">
@@ -230,7 +251,7 @@ export default class Dashboard extends Component {
                     </Modal.Header>
                     <Modal.Body>Are you sure you want to delete?</Modal.Body>
                     <Modal.Footer>
-                        <button className="btn btn-outline-secondary" onClick={this.handleDelete}>Delete</button>
+                        <button className="btn btn-outline-danger" onClick={this.handleDelete}>Delete</button>
                         <button className="btn btn-primary" onClick={this.handleModal}>Cancel</button>
                     </Modal.Footer>
                 </Modal>
