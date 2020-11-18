@@ -144,8 +144,7 @@ export default class AddEmployee extends Component {
                 flag = 0
                 errors.mobileNo = "Enter a valid mobile number"
             }
-            console.log(this.state.mobileNo.length)
-            if (this.state.mobileNo.length !== 12) {
+            if (this.state.mobileNo.length !== 10) {
                 flag = 0
                 errors.mobileNo = "Mobile no should have only 10 digits"
             }
@@ -170,13 +169,11 @@ export default class AddEmployee extends Component {
         e.preventDefault()
         this.setState({ isError: false, isSubmitting: true })
         const isValid = this.validateValues();
-        console.log(isValid)
         if (isValid === 0) {
             swal("Error", "Fill the form correctly", "error");
             this.setState({ isError: true, isSubmitting: false })
             return
         }
-        console.log(moment(this.state.dob, "YYYY-MM-DD").format("DD/MM/YYYY"),)
         let address = this.state.addressLine1 + '|' + this.state.addressLine2 + '|' + this.state.city + '|' + this.state.state + '|' + this.state.pinCode + '|' + this.state.country
         const data = {
             name: this.state.firstName + " " + this.state.lastName,

@@ -51,7 +51,6 @@ export default class Dashboard extends Component {
         })
             .then(result => result.json())
             .then(res => {
-                console.log(res.data)
                 this.setState({ allEmployees: res.data })
             })
     }
@@ -135,7 +134,6 @@ export default class Dashboard extends Component {
     }
 
     validateFilterValues = () => {
-        console.log(this.state.filterValues)
         let error = this.state.filterErrors;
         let flag = true;
         if (this.state.filter.id === true && !this.state.filterValues.id) {
@@ -158,6 +156,17 @@ export default class Dashboard extends Component {
             flag = false
             error["common"] = "Add some filters to filter"
         }
+        if (this.state.filterValues.id) {
+            let isnum = /^\d+$/.test(this.state.filterValues.id);
+            if (!isnum) {
+                flag = false
+                error["id"] = "Enter 7 digit no only"
+            }
+        }
+        if (this.state.filterValues.name && !(/^[a-zA-Z ]+$/.test(this.state.filterValues.name))) {
+            flag = false
+            error["name"] = "Enter a valid name"
+        }
         this.setState({ filterErrors: { ...error } })
         return flag
 
@@ -168,7 +177,6 @@ export default class Dashboard extends Component {
         if (isValid) {
             let data = { ...this.state.filterValues, status: this.state.filter }
             this.handleFilterModal();
-            console.log(this.state.filterValues)
             fetch('/filter_employees', {
                 method: 'POST',
                 headers: {
@@ -179,7 +187,6 @@ export default class Dashboard extends Component {
             })
                 .then(result => result.json())
                 .then(res => {
-                    console.log(res)
                     this.setState({ allEmployees: res.data || [] })
                 })
         }

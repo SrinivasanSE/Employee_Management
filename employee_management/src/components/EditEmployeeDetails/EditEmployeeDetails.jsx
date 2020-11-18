@@ -70,7 +70,6 @@ export default class AddEmployee extends Component {
             .then(res => {
                 if (res.status === "success") {
                     let data = res.data
-                    console.log(data)
                     this.setState({ apiData: data });
                     this.setData(data);
 
@@ -214,13 +213,11 @@ export default class AddEmployee extends Component {
         e.preventDefault()
         this.setState({ isError: false, isSubmitting: true })
         const isValid = this.validateValues();
-        console.log(isValid)
         if (isValid === 0) {
             swal("Error", "Fill the form correctly", "error");
             this.setState({ isError: true, isSubmitting: false })
             return
         }
-        console.log(moment(this.state.dob, "YYYY-MM-DD").format("DD/MM/YYYY"),)
         let address = this.state.addressLine1 + '|' + this.state.addressLine2 + '|' + this.state.city + '|' + this.state.state + '|' + this.state.pinCode + '|' + this.state.country
         const data = {
             name: this.state.firstName + " " + this.state.lastName,
