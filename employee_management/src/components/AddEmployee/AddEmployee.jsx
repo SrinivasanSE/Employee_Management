@@ -145,7 +145,7 @@ export default class AddEmployee extends Component {
                 errors.mobileNo = "Enter a valid mobile number"
             }
             console.log(this.state.mobileNo.length)
-            if (this.state.mobileNo.length !== 12) {
+            if (this.state.mobileNo.length !== 10) {
                 flag = 0
                 errors.mobileNo = "Mobile no should have only 10 digits"
             }

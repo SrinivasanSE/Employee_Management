@@ -95,23 +95,23 @@ def add_employee_to_db():
             }), 200
 
 
-def calculate_age(dob):
-    age = 0
-    day = int(dob[0:2])
-    month = int(dob[3:5])
-    year = int(dob[6:10])
-    today = date.today()
-    if today.year > year:
-        if today.month > month:
-            age = today.year - year
-        elif today.month == month:
-            if today.day > day:
-                age = today.year - year
-            else:
-                age = today.year - year - 1
-        else:
-            age = today.year - year - 1
-    return age
+# def calculate_age(dob):
+#     age = 0
+#     day = int(dob[0:2])
+#     month = int(dob[3:5])
+#     year = int(dob[6:10])
+#     today = date.today()
+#     if today.year > year:
+#         if today.month > month:
+#             age = today.year - year
+#         elif today.month == month:
+#             if today.day > day:
+#                 age = today.year - year
+#             else:
+#                 age = today.year - year - 1
+#         else:
+#             age = today.year - year - 1
+#     return age
 
 
 # @app.route("/filter_employees", methods=['POST'])
@@ -216,11 +216,11 @@ def calculate_age(dob):
 def get_employees_data(emp_data):
     employees_data = []
     for emp in emp_data:
-        print(emp)
         data = {'emp_id': emp[0], 'name': emp[1], 'gender': emp[2], 'address': emp[3],
                 'dob': emp[4], 'mobile': emp[5], 'email': emp[6], 'role': emp[7]}
         employees_data.append(data.copy())
     return employees_data[:]
+
 
 def get_employee_data(emp):
     employees_data = []
@@ -228,6 +228,7 @@ def get_employee_data(emp):
                 'dob': emp[4], 'mobile': emp[5], 'email': emp[6], 'role': emp[7]}
     employees_data.append(data.copy())
     return employees_data[:]
+
 
 @app.route("/filter_employees", methods=['POST'])
 def search_employee():
@@ -239,14 +240,14 @@ def search_employee():
             location = data["location"]
             status=data["status"]
             cur = mysql.connection.cursor()
-            #id
-            #name
-            #location
+            # id
+            # name
+            # location
             # age
             # name and location
             # name and age
             # location and age
-            #name and location and age
+            # name and location and age
             if status["id"]:
                 cnt = cur.execute(f"SELECT * FROM employee_tab WHERE emp_id={emp_id} and role!='HR';")
                 emp = cur.fetchone()
@@ -375,12 +376,6 @@ def search_employee():
                     "msg":"Employees not found"
                     }),200
 
-
-
-                
-           
-
-       
 
 @app.route("/get_all_employees", methods=['GET'])
 def show_employee():
