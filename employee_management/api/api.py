@@ -502,7 +502,7 @@ def authenticate_user():
         if user[7] != "HR":
             return jsonify({
                 "status": "success",
-                "msg": "User is not authorized",
+                "msg": "User is not authorized to Login",
                 "data": user,
             }), 200
         passwordInDb = user[-1]

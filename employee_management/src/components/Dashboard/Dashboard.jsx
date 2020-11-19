@@ -45,6 +45,7 @@ export default class Dashboard extends Component {
                 name: '',
                 location: '',
                 age: '',
+                common: '',
 
             },
             loading: false,
@@ -72,6 +73,7 @@ export default class Dashboard extends Component {
     }
 
     componentDidMount() {
+        window.scrollTo(0, 0)
         this.getAllEmployees();
     }
 
@@ -84,9 +86,40 @@ export default class Dashboard extends Component {
     }
 
     handleFilterModal = () => {
-        let error = this.state.filterErrors
-        error["common"] = ""
-        this.setState({ showFilterModal: !this.state.showFilterModal, filterErrors: { ...error } })
+        let errors = this.state.filterErrors;
+        let values = this.state.filterValues;
+        let filter = this.state.filter
+        let props = ["id", "name", "age", "location"]
+        let flag = true;
+        for (let prop of props) {
+            if (errors[prop]) {
+                flag = false;
+            }
+        }
+        if (!flag) {
+            errors = {
+                id: '',
+                name: '',
+                location: '',
+                age: '',
+                common: ''
+            }
+            values = {
+                id: '',
+                name: '',
+                location: '',
+                age: '',
+            }
+            filter = {
+                id: false,
+                name: false,
+                location: false,
+                age: false,
+            }
+        }
+        console.log(values, filter, errors)
+        errors["common"] = ""
+        this.setState({ showFilterModal: !this.state.showFilterModal, filterErrors: { ...errors }, filterValues: { ...values }, filter: { ...filter } })
     }
 
     handleDelete = () => {
@@ -180,15 +213,18 @@ export default class Dashboard extends Component {
             let isnum = /^\d+$/.test(this.state.filterValues.id);
             if (!isnum || this.state.filterValues.id.length !== 7) {
                 flag = false
-                error["id"] = "Enter 7 digit no only"
+                error["id"] = "Id should be 7 digits and no characters allowed"
             }
         }
         if (this.state.filterValues.name && !(/^[a-zA-Z ]+$/.test(this.state.filterValues.name))) {
             flag = false
             error["name"] = "Enter a valid name"
         }
-        if ((!parseInt(this.state.filterValues.age) >= 21 && parseInt(this.state.filterValues.age) <= 60)) {
-            error["age"] = "Age should be between 21 and 60"
+        if (this.state.filterValues.age) {
+            if (!(parseInt(this.state.filterValues.age) >= 21 && parseInt(this.state.filterValues.age) <= 60)) {
+                flag = false
+                error["age"] = "Age should be between 21 and 60"
+            }
         }
         this.setState({ filterErrors: { ...error } })
         return flag
@@ -231,6 +267,13 @@ export default class Dashboard extends Component {
                 location: '',
                 age: '',
             },
+            filterErrors: {
+                id: '',
+                name: '',
+                location: '',
+                age: '',
+                common: '',
+            },
         })
         this.getAllEmployees();
     }
@@ -243,7 +286,7 @@ export default class Dashboard extends Component {
                     <div className="d-flex flex-wrap justify-content-between mb-4">
                         <Link to="/employee/add" className="btn btn-outline-primary">Add employee <HiUserAdd /></Link>
                         <div className="total_employees.txt">Total Employees:{!this.state.loading ? (<span className="badge badge-pill badge-primary">{this.state.allEmployees.length}</span>) : (<span> Loading...</span>)}</div>
-                        <div><button className="btn btn-primary" onClick={this.handleFilterModal} disabled={this.state.allEmployees.length === 0 && !isFilter}>Filter </button>{isFilter && (<span className="remove_filter_btn" role="button"><MdClear onClick={this.handleRemoveFilters} title="remove filters" /></span>)}</div>
+                        <div><button className="btn btn-primary" onClick={this.handleFilterModal}>Filter </button>{isFilter && (<span className="remove_filter_btn" role="button"><MdClear onClick={this.handleRemoveFilters} title="remove filters" /></span>)}</div>
                     </div>
                     {this.state.loading ? (
                         <HashLoader

@@ -146,7 +146,7 @@ export default class AddEmployee extends Component {
             }
             if (this.state.mobileNo.length !== 10) {
                 flag = 0
-                errors.mobileNo = "Mobile no should have only 10 digits"
+                errors.mobileNo = "Mobile no should have only 10 digits and no characters allowed"
             }
         }
         this.setState({ errors: { ...errors } });
@@ -269,7 +269,7 @@ export default class AddEmployee extends Component {
                             </div>
                             <div className="form-group">
                                 <label className="label_color"><span className="text-danger">*</span>Date of birth(dd-mm-yyyy)</label>
-                                <input type="date" value={this.state.dob} min={`${new Date().getFullYear() - 60}-01-01`} max={`${new Date().getFullYear() - 20}-01-01`} name="dob" className="form-control" placeholder="Example: 20/04/2020" onChange={this.handleInput} />
+                                <input type="date" value={this.state.dob} min={`${new Date().getFullYear() - 60}-01-01`} max={`${new Date().getFullYear() - 22}-01-01`} name="dob" className="form-control" placeholder="Example: 20/04/2020" onChange={this.handleInput} />
                                 {this.state.errors.dob && (<span className="text-danger">{this.state.errors.dob}</span>)}
                             </div>
                             <div className="address_field">

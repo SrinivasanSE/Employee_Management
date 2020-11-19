@@ -190,7 +190,7 @@ export default class AddEmployee extends Component {
             }
             if (this.state.mobileNo.length !== 10) {
                 flag = 0
-                errors.mobileNo = "Mobile no should have only 10 digits"
+                errors.mobileNo = "Mobile no should have only 10 digits and no characters allowed"
             }
         }
         this.setState({ errors: { ...errors } });
