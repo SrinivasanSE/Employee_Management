@@ -119,7 +119,7 @@ def add_employee_to_db():
 #     if request.method == "POST":
 #         try:
 #             data = request.get_json()
-#             print("heerer")
+# 
 #             emp_id = data["id"]
 #             name = data["name"]
 #             age = int(data["age"])
@@ -129,7 +129,7 @@ def add_employee_to_db():
 #             emp_data = cur.fetchall()
 #             lst = []
 #             emp = ()
-#             print("heeeeeeeeeeeeeeeeeeeeeeeeeeeee")
+#  
 #             binary_list = []
 #             if name == "":
 #                 binary_list.append(0)
@@ -145,7 +145,7 @@ def add_employee_to_db():
 #                 binary_list.append(1)
 #             binary = int(str(str(binary_list[0]) + str(binary_list[1]) + str(binary_list[2])), 2)
 #             if emp_id != "":
-#                 print("=================")
+#       
 #                 cnt = cur.execute(f"SELECT * FROM employee_tab WHERE emp_id={emp_id};")
 #                 emp = cur.fetchone()
 #             elif emp_id == "" and binary == 0:
