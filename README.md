@@ -31,7 +31,7 @@
 ### To run backend
 1) Navigate to api folder in employee_management
 2) Run pip install -r requirements.txt to install all the dependencies
-3) Run python api.py
+3) Run python api.py after configuring mysql server.
 
 ### To run frontend
 1) In the root folder employee_management, run npm install
@@ -47,10 +47,10 @@
 seenusrini1999@gmail.com
 
 
-### Project colloborator
+### Project contributors
 - Anindya Sarkar https://github.com/Anindya666-stn
-- Mani https://github.com/Maniadarsh
-- Rajesh chodhury https://github.com/RAJesh-99
+- Mani Sivaram https://github.com/Maniadarsh
+- Rajesh choudhury https://github.com/RAJesh-99
 - Priyanka Rout https://github.com/PriyankaRout099
 - Srinivasan V https://github.com/SrinivasanSE
 
