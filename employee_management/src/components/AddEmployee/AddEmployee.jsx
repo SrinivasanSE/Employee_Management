@@ -3,6 +3,7 @@ import LayoutWrapper from "../Navbar/Navbar";
 import { isUserAuthenticated } from "../../helpers/auth";
 import "./addEmployee.css";
 import swal from 'sweetalert';
+import moment from "moment";
 
 function validateEmail(email) {
     const re = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
@@ -28,6 +29,8 @@ export default class AddEmployee extends Component {
             mobileNo: '',
             email: '',
             errors: {},
+            isSubmitting: false,
+            isError: false,
         }
     }
 
@@ -42,9 +45,19 @@ export default class AddEmployee extends Component {
             flag = 0;
             errors.firstName = "FirstName is required"
         }
+        if (this.state.firstName && !(/^[a-zA-Z ]+$/.test(this.state.firstName))) {
+            flag = 0;
+            errors.firstName = "Enter a valid FirstName"
+
+        }
         if (!this.state.lastName) {
             flag = 0;
             errors.lastName = "LastName is required"
+        }
+        if (this.state.lastName && !(/^[a-zA-Z ]+$/.test(this.state.lastName))) {
+            flag = 0;
+            errors.lastName = "Enter a valid LastName"
+
         }
         if (!this.state.email) {
             flag = 0;
@@ -61,47 +74,80 @@ export default class AddEmployee extends Component {
             flag = 0;
             errors.dob = "Date of birth is required"
         }
-        if (this.state.dob) {
-            let date = this.state.dob.split("/");
-            if (date.length !== 3) {
-                flag = 0;
-                errors.dob = "Enter valid date"
-            }
-            let day = parseInt(date[0]);
-            let month = parseInt(date[1]);
-            let year = parseInt(date[2]);
-            if (!(day >= 1 && day <= 31) || !(month >= 1 && month <= 12) || !(year >= 1920 && year < new Date().getFullYear())) {
-                errors.dob = "Enter valid date"
-                flag = 0;
-            }
-        }
+        // if (this.state.dob) {
+        //     let date = this.state.dob.split("/");
+        //     if (date.length !== 3) {
+        //         flag = 0;
+        //         errors.dob = "Enter valid date"
+        //     }
+        //     let day = parseInt(date[0]);
+        //     let month = parseInt(date[1]);
+        //     let year = parseInt(date[2]);
+        //     if (!(day >= 1 && day <= 31) || !(month >= 1 && month <= 12) || !(year >= 1920 && year < new Date().getFullYear())) {
+        //         errors.dob = "Enter valid date"
+        //         flag = 0;
+        //     }
+        // }
         if (!this.state.addressLine1) {
             flag = 0;
-            errors.addressLine1 = "Address is required"
+            errors.addressLine1 = "Address line 1 is required"
         }
         if (!this.state.addressLine2) {
             flag = 0;
-            errors.addressLine2 = "Area is required"
+            errors.addressLine2 = "Address line 2 is required"
         }
         if (!this.state.city) {
             flag = 0;
             errors.city = "City is required"
         }
+        if (this.state.city && !(/^[a-zA-Z ]+$/.test(this.state.city))) {
+            flag = 0;
+            errors.city = "Enter a valid city name"
+
+        }
         if (!this.state.state) {
             flag = 0;
             errors.state = "State is required"
+        }
+        if (this.state.state && !(/^[a-zA-Z ]+$/.test(this.state.state))) {
+            flag = 0;
+            errors.state = "Enter a valid state name"
+
         }
         if (!this.state.country) {
             flag = 0;
             errors.country = "country is required"
         }
+        if (this.state.country && !(/^[a-zA-Z ]+$/.test(this.state.country))) {
+            flag = 0;
+            errors.country = "Enter a valid country name"
+
+        }
         if (!this.state.pinCode) {
             flag = 0;
             errors.pinCode = "pincode is required"
         }
+        if (this.state.pinCode) {
+            let isnum = /^\d+$/.test(this.state.pinCode);
+            if (!isnum) {
+                flag = 0
+                errors.pinCode = "Enter a valid pincode"
+            }
+        }
         if (!this.state.mobileNo) {
             flag = 0;
             errors.mobileNo = "Mobile No is required"
+        }
+        if (this.state.mobileNo) {
+            let isnum = /^\d+$/.test(this.state.mobileNo);
+            if (!isnum) {
+                flag = 0
+                errors.mobileNo = "Enter a valid mobile number"
+            }
+            if (this.state.mobileNo.length !== 10) {
+                flag = 0
+                errors.mobileNo = "Mobile no should have only 10 digits and no characters allowed"
+            }
         }
         this.setState({ errors: { ...errors } });
         return flag;
@@ -121,17 +167,19 @@ export default class AddEmployee extends Component {
 
     handleSubmit = (e) => {
         e.preventDefault()
+        this.setState({ isError: false, isSubmitting: true })
         const isValid = this.validateValues();
         if (isValid === 0) {
+            swal("Error", "Fill the form correctly", "error");
+            this.setState({ isError: true, isSubmitting: false })
             return
         }
         let address = this.state.addressLine1 + '|' + this.state.addressLine2 + '|' + this.state.city + '|' + this.state.state + '|' + this.state.pinCode + '|' + this.state.country
-        console.log(this.state)
         const data = {
             name: this.state.firstName + " " + this.state.lastName,
             gender: this.state.gender,
             address: address,
-            dob: this.state.dob,
+            dob: moment(this.state.dob, "YYYY-MM-DD").format("DD/MM/YYYY"),
             mobile: this.state.mobileNo,
             email: this.state.email,
 
@@ -146,10 +194,12 @@ export default class AddEmployee extends Component {
             body: JSON.stringify(data)
         }
         fetch("/add_employee", body).then((res) => res.json()).then((res) => {
-            if (res.msg === "Employee successfully added") {
-                swal("Success", "Employee successfully added", "success").then((value) => this.props.history.push("/dashboard"));
+            if (res.status === "success") {
+                this.setState({ isSubmitting: false })
+                swal("Success", res.msg, "success").then(() => this.props.history.push("/dashboard"));
             }
             else {
+                this.setState({ isSubmitting: false })
                 swal("Error", res.msg, "error");
             }
         })
@@ -162,21 +212,21 @@ export default class AddEmployee extends Component {
                         <h3 className="add_employee_text">Add Employee</h3>
                         <form className="form_content_add" onSubmit={this.handleSubmit}>
                             <div className="form-group">
-                                <label className="label_color">Firstname</label>
+                                <label className="label_color"><span className="text-danger">*</span>Firstname</label>
                                 <input type="text" name="firstName" className="form-control" value={this.state.firstName} onChange={this.handleInput} />
                                 {this.state.errors.firstName && (<span className="text-danger">{this.state.errors.firstName}</span>)}
                             </div>
                             <div className="form-group">
-                                <label className="label_color">Lastname</label>
+                                <label className="label_color"><span className="text-danger">*</span>Lastname</label>
                                 <input type="text" name="lastName" className="form-control" value={this.state.lastName} onChange={this.handleInput} />
                                 {this.state.errors.lastName && (<span className="text-danger">{this.state.errors.lastName}</span>)}
                             </div>
                             <div className="form-group">
-                                <label className="label_color">Email Id</label>
+                                <label className="label_color"><span className="text-danger">*</span>Email Id</label>
                                 <input type="email" name="email" className="form-control" value={this.state.email} onChange={this.handleInput} />
                                 {this.state.errors.email && (<span className="text-danger">{this.state.errors.email}</span>)}
                             </div>
-                            <div className="row d-flex justify-content-between align-items-center w-100 pb-3">
+                            <div className="row d-flex justify-content-between align-items-center pb-3">
                                 <div className="col-12 col-md-2 label_color">Gender:</div>
                                 <div className="col-12 col-md-10 mt-2">
                                     <div className="d-flex flex-wrap justify-content-between align-items-center w-100">
@@ -189,7 +239,7 @@ export default class AddEmployee extends Component {
                                                 checked={this.state.gender === "Male"}
                                                 onChange={this.handleInput}
                                             />
-                                            <span className="ml-3">Male</span>
+                                            <span className="ml-1">Male</span>
                                         </label>
 
                                         <label className="col-12 col-md-4 radio-block">
@@ -201,7 +251,7 @@ export default class AddEmployee extends Component {
                                                 checked={this.state.gender === "Female"}
                                                 onChange={this.handleInput}
                                             />
-                                            <span className="ml-3">Female</span>
+                                            <span className="ml-1">Female</span>
                                         </label>
                                         <label className="col-12 col-md-4 radio-block">
                                             <input
@@ -212,44 +262,45 @@ export default class AddEmployee extends Component {
                                                 checked={this.state.gender === "Others"}
                                                 onChange={this.handleInput}
                                             />
-                                            <span className="ml-3">Others</span>
+                                            <span className="ml-1">Others</span>
                                         </label>
                                     </div>
                                 </div>
                             </div>
                             <div className="form-group">
-                                <label className="label_color">Date of birth(dd/mm/yyyy)</label>
-                                <input type="text" value={this.state.dob} name="dob" className="form-control" placeholder="Example: 20/04/2020" onChange={this.handleInput} />
+                                <label className="label_color"><span className="text-danger">*</span>Date of birth(dd-mm-yyyy)</label>
+                                <input type="date" value={this.state.dob} min={`${new Date().getFullYear() - 60}-01-01`} max={`${new Date().getFullYear() - 22}-01-01`} name="dob" className="form-control" placeholder="Example: 20/04/2020" onChange={this.handleInput} />
                                 {this.state.errors.dob && (<span className="text-danger">{this.state.errors.dob}</span>)}
                             </div>
                             <div className="address_field">
                                 <div>
-                                    <label className="label_color">Address Line 1</label>
+                                    <label className="label_color"><span className="text-danger">*</span>Address Line 1</label>
                                     <input type="text" name="addressLine1" className="form-control" value={this.state.addressLine1} onChange={this.handleInput} />
                                     {this.state.errors.addressLine1 && (<div className="text-danger">{this.state.errors.addressLine1}</div>)}
-                                    <label className="label_color">Address Line 2</label>
+                                    <label className="label_color"><span className="text-danger">*</span>Address Line 2</label>
                                     <input type="text" name="addressLine2" className="form-control" value={this.state.addressLine2} onChange={this.handleInput} />
-                                    <label className="label_color">City</label>
+                                    {this.state.errors.addressLine2 && (<div className="text-danger">{this.state.errors.addressLine2}</div>)}
+                                    <label className="label_color"><span className="text-danger">*</span>City</label>
                                     <input type="text" name="city" className="form-control" value={this.state.city} onChange={this.handleInput} />
                                     {this.state.errors.city && (<div className="text-danger">{this.state.errors.city}</div>)}
-                                    <label className="label_color">State</label>
+                                    <label className="label_color"><span className="text-danger">*</span>State</label>
                                     <input type="text" name="state" className="form-control" value={this.state.state} onChange={this.handleInput} />
                                     {this.state.errors.state && (<div className="text-danger">{this.state.errors.state}</div>)}
-                                    <label className="label_color" >Country</label>
+                                    <label className="label_color" ><span className="text-danger">*</span>Country</label>
                                     <input type="text" name="country" className="form-control" value={this.state.country} onChange={this.handleInput} />
                                     {this.state.errors.country && (<div className="text-danger">{this.state.errors.country}</div>)}
-                                    <label className="label_color">Pincode</label>
+                                    <label className="label_color"><span className="text-danger">*</span>Pincode</label>
                                     <input type="no" name="pinCode" className="form-control" value={this.state.pinCode} onChange={this.handleInput} />
                                     {this.state.errors.pinCode && (<div className="text-danger">{this.state.errors.pinCode}</div>)}
                                 </div>
                             </div>
                             <div className="form-group">
-                                <label className="label_color">Mobile No:</label>
-                                <input type="tel" name="mobileNo" className="form-control" value={this.state.mobileNumber} onChange={this.handleInput} />
+                                <label className="label_color"><span className="text-danger">*</span>Mobile No:</label>
+                                <input type="tel" name="mobileNo" className="form-control" value={this.state.mobileNo} placeholder="Enter number only" onChange={this.handleInput} />
                                 {this.state.errors.mobileNo && (<span className="text-danger">{this.state.errors.mobileNo}</span>)}
                             </div>
-                            <div className="text-center">
-                                <button className="btn btn-primary" type="submit">Submit</button>
+                            <div className="text-center mt-5">
+                                <button className="btn btn-primary" type="submit" disabled={this.state.isSubmitting}>{this.state.isSubmitting ? "Submitting..." : "Submit"}</button>
                             </div>
                         </form>
                     </div>

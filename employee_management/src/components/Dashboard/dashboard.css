@@ -1,6 +1,5 @@
 .dashboard_content{
     margin-top: 10%;
-    height:600px;
 }
 
 
@@ -14,8 +13,45 @@
     cursor:pointer;
 }
 
+.details{
+    background-color: bisque;
+    padding: 10px;
+    margin-bottom: 9px;
+    border-radius: 10px;
+}
+
 .total_employees_txt{
     display: flex;
     justify-content:center;
     align-items: center;
+}
+
+.title{
+    font-size: 17px;
+    font-weight: 600;
+}
+.remove_filter_btn{
+    font-size: 15px;
+    background-color: gray;
+    border-radius: 50%;
+    padding: 2px;
+}
+
+.helper_text{
+    font-size: 20px;
+    font-family: monospace;
+    background: cadetblue;
+}
+
+.address_text{
+    word-break:  break-word;
+}
+
+@media (max-width:768px){
+    .dashboard_content {
+        margin-top: 29%;
+    }
+    .main-content-default{
+        height:auto;
+     }
 }

@@ -3,7 +3,7 @@
     display: flex;
     justify-content: center;
     background-image: url("../../assets/images/background.jpg");
-    height: 600px;
+    height: 100%;
     background-position: center;
     background-repeat: no-repeat;
     background-size: cover;
@@ -28,4 +28,12 @@
 
 .label_color{
     color:white;
+}
+@media (max-width:768px){
+.login_form {
+    width: 90%;
+}
+.login_content{
+    width: 100%;
+}
 }
